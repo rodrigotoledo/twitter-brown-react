@@ -21,7 +21,7 @@ const SideBar = () => {
   })
 
   return (
-    <aside className="w-64 p-4 border-r border-brown-dark overflow-y-auto">
+    <div className="w-64 sm:w-full p-4 border-r border-brown-dark overflow-y-auto">
       <h2 className="text-xl font-semibold mb-4">Latest Tweets</h2>
       {isLoading ? (
         <p>Loading...</p>
@@ -33,7 +33,7 @@ const SideBar = () => {
           </div>
         ))
       )}
-    </aside>
+    </div>
   )
 }
 
