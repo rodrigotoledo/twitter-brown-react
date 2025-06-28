@@ -1,6 +1,6 @@
 import { useUser } from '../context/UserContext'
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect  } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import TopBar from '../components/TopBar'
 import SideBar from '../components/SideBar'
 import TweetForm from '../components/TweetForm'
@@ -25,34 +25,30 @@ const Home = () => {
 
   return (
     <div className="h-screen flex flex-col bg-brown-light text-white">
-      {/* TopBar fixa */}
-      <div className="sticky top-0 z-20 bg-brown px-6 py-4 shadow-md">
+      <div className="h-20 sticky top-0 z-20 bg-brown px-6 py-4 shadow-lg">
         <TopBar />
       </div>
 
-      {/* Conteúdo principal */}
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Sidebar: topo no mobile, esquerda no desktop */}
-        <div className="sm:h-40 h-full border-b border-brown-dark w-1/2">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <div className="h-40 overflow-y-auto border-b border-brown-dark md:h-full md:w-1/3 lg:w-1/4 md:border-b-0 md:border-r">
           <SideBar />
         </div>
 
-        {/* MainArea */}
-        <div className="flex-1 flex flex-col relative order-2">
-          {/* Lista de tweets com rolagem própria */}
-          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28">
+        <div className="flex-1 flex flex-col md:h-full overflow-hidden p-4">
+          <h1 className='text-lg font-semibold'>My Tweets</h1>
+          <div className="flex-1 overflow-y-auto py-4 space-y-4">
             {myTweets.map((tweet) => (
               <TweetCard key={tweet.id} user={tweet.user} content={tweet.content} />
             ))}
           </div>
 
-          {/* Formulário fixo abaixo */}
-          <div className="absolute bottom-0 left-0 right-0 bg-brown px-4 py-3 shadow-md">
+          <div className="bg-brown px-4 py-3 shadow-md z-10 sticky bottom-0 mb-3 rounded">
             <TweetForm onPost={(tweet) => setMyTweets([tweet, ...myTweets])} />
           </div>
         </div>
       </div>
     </div>
+
   )
 }
 
