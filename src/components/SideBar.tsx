@@ -10,7 +10,7 @@ const SideBar = () => {
   const { data: externalTweets, isLoading } = useQuery<Tweet[]>({
     queryKey: ['externalTweets'],
     queryFn: async () => {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5')
+      const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=20')
       const data = await res.json()
       return data.map((item: any) => ({
         id: item.id.toString(),
@@ -21,7 +21,7 @@ const SideBar = () => {
   })
 
   return (
-    <div className="w-64 sm:w-full p-4 border-r border-brown-dark overflow-y-auto">
+    <div className="w-full p-4 md:border-r border-brown-dark overflow-y-auto">
       <h2 className="text-xl font-semibold mb-4">Latest Tweets</h2>
       {isLoading ? (
         <p>Loading...</p>
