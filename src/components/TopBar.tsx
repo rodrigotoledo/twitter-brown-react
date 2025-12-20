@@ -6,14 +6,14 @@ const TopBar = () => {
   if (!user) return null
 
   return (
-    <header className="flex justify-between items-center mb-6">
+    <header className="flex justify-between items-center">
       <div>
-        <h1 className="text-lg font-semibold">{user.name}</h1>
-        <p className="text-sm text-brown-100">@{user.username}</p>
+        <h1 className="text-lg font-semibold text-vscode-text">{user.name}</h1>
+        <p className="text-sm text-vscode-text-muted">@{user.username}</p>
       </div>
       <button
         onClick={logout}
-        className="bg-brown px-3 py-1 rounded hover:bg-brown-dark"
+        className="bg-vscode-accent text-white px-4 py-2 rounded hover:bg-vscode-accent-hover transition"
       >
         Logout
       </button>

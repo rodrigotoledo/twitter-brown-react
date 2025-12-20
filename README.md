@@ -1,35 +1,72 @@
-# Getting Started with Create React App
+# Twitter Brown - React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicação React moderna construída com Vite, TypeScript e Tailwind CSS.
 
-## Available Scripts
+## 🚀 Stack Tecnológica
 
-In the project directory, you can run:
+- **React 19** - Biblioteca UI
+- **TypeScript 5** - Tipagem estática
+- **Vite** - Build tool moderna e rápida
+- **Tailwind CSS** - Framework CSS utility-first
+- **React Router** - Roteamento
+- **TanStack Query** - Gerenciamento de estado assíncrono
+- **Vitest** - Framework de testes
+- **ESLint 9** - Linter com configuração moderna
 
-### `npm start`
+## 📦 Scripts Disponíveis
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Desenvolvimento
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+npm run dev        # Inicia servidor de desenvolvimento na porta 3000
+npm start          # Alias para npm run dev
+```
 
-### `npm test`
+### Build
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run build      # Compila TypeScript e cria build de produção
+npm run preview    # Preview da build de produção
+```
 
-### `npm run build`
+### Qualidade de Código
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run lint       # Verifica problemas de código
+npm run lint:fix   # Corrige automaticamente problemas
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Testes
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm test           # Executa testes com Vitest
+```
 
-### `npm run eject`
+## 🛠️ Instalação
+
+```bash
+# Instalar dependências
+npm install
+
+# Iniciar desenvolvimento
+npm run dev
+```
+
+## ✨ Características
+
+- ✅ **Sem peer dependency conflicts** - Todas as dependências são compatíveis
+- ✅ **TypeScript moderno** - Configuração otimizada para Vite
+- ✅ **ESLint 9** - Configuração flat config moderna
+- ✅ **Hot Module Replacement** - Atualizações instantâneas durante desenvolvimento
+- ✅ **Fast Refresh** - Mantém o estado durante edições
+- ✅ **Builds otimizados** - Chunks automáticos e tree-shaking
+
+## 📝 Notas
+
+- O projeto foi migrado de Create React App para Vite
+- Não é mais necessário usar `--legacy-peer-deps`
+- Configuração moderna do ESLint com flat config
+- TypeScript 5.9 com todas as features mais recentes
 
 **Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 

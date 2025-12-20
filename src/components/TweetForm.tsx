@@ -27,12 +27,12 @@ const TweetForm = ({ onPost }: Props) => {
   }
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-3">
       <input
         type='text'
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full p-3 text-black rounded resize-none outline-none"
+        className="w-full p-3 bg-vscode-input text-vscode-text rounded outline-none border border-vscode-border focus:ring-2 focus:ring-vscode-accent placeholder-vscode-text-muted"
         placeholder="What's happening?"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -43,7 +43,7 @@ const TweetForm = ({ onPost }: Props) => {
       />
       <button
         onClick={handlePost}
-        className="px-4 py-2 rounded bg-brown-dark border-amber-100 border-1 w-fit"
+        className="px-5 py-2 rounded bg-vscode-accent text-white hover:bg-vscode-accent-hover transition w-fit font-semibold"
       >
         Post
       </button>

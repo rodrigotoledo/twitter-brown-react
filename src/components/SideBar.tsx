@@ -6,13 +6,19 @@ type Tweet = {
   content: string
 }
 
+type ExternalPost = {
+  id: number
+  userId: number
+  body: string
+}
+
 const SideBar = () => {
   const { data: externalTweets, isLoading } = useQuery<Tweet[]>({
     queryKey: ['externalTweets'],
     queryFn: async () => {
       const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=20')
-      const data = await res.json()
-      return data.map((item: any) => ({
+      const data: ExternalPost[] = await res.json()
+      return data.map((item: ExternalPost) => ({
         id: item.id.toString(),
         user: `user${item.userId}`,
         content: item.body,
@@ -21,15 +27,15 @@ const SideBar = () => {
   })
 
   return (
-    <div className="w-full p-4 md:border-r border-brown-dark overflow-y-auto">
-      <h2 className="text-xl font-semibold mb-4">Latest Tweets</h2>
+    <div className="w-full p-4 md:border-r border-vscode-border overflow-y-auto bg-vscode-sidebar">
+      <h2 className="text-xl font-semibold mb-4 text-vscode-text">Latest Tweets</h2>
       {isLoading ? (
-        <p>Loading...</p>
+        <p className="text-vscode-text-muted">Loading...</p>
       ) : (
         externalTweets?.map((tweet: Tweet) => (
-          <div key={tweet.id} className="mb-3 bg-brown-dark p-2 rounded">
-            <p className="text-sm font-semibold">@{tweet.user}</p>
-            <p className="text-sm">{tweet.content}</p>
+          <div key={tweet.id} className="mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition">
+            <p className="text-sm font-semibold text-vscode-accent">@{tweet.user}</p>
+            <p className="text-sm text-vscode-text mt-1">{tweet.content}</p>
           </div>
         ))
       )}

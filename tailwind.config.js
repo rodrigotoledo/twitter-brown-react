@@ -1,12 +1,20 @@
-module.exports = {
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        brown: {
-          DEFAULT: '#7B3F00',
-          light: '#A0522D',
-          dark: '#5C2E00',
+        vscode: {
+          bg: '#1e1e1e',
+          sidebar: '#252526',
+          editor: '#1e1e1e',
+          input: '#3c3c3c',
+          hover: '#2a2d2e',
+          border: '#454545',
+          text: '#cccccc',
+          'text-muted': '#858585',
+          accent: '#007acc',
+          'accent-hover': '#005a9e',
         },
       },
     },
