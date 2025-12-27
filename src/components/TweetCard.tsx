@@ -31,8 +31,7 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
 
   return (
     <div
-      className="bg-vscode-sidebar p-4 rounded shadow-lg border border-vscode-border hover:border-vscode-accent transition flex flex-col mb-4 hover:shadow-2xl hover:-translate-y-1"
-      style={{ willChange: 'box-shadow, border-color, transform' }}
+      className="bg-vscode-sidebar p-4 rounded shadow-lg border border-vscode-border hover:border-vscode-accent transition flex flex-col mb-4 hover:shadow-2xl hover:-translate-y-1 will-change-transform will-change-shadow will-change-border-color"
     >
       <div className="flex items-center gap-2 mb-1">
         <p className="text-sm font-semibold text-vscode-accent">@{userName || user}</p>
@@ -48,15 +47,18 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
         </div>
       )}
       <div className="flex mt-3 gap-4 text-xs text-vscode-text-muted items-center">
-        <button
-          className="flex mt-3 items-center gap-1 hover:text-vscode-accent cursor-pointer transition font-medium focus:outline-none"
-          onClick={() => setShowComments((v) => !v)}
-          type="button"
-        >
-          {/* Ícone Lucide para comentário */}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M21 11.5a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 0 1 12 21a8.38 8.38 0 0 1-5.4-1.9L3 21l1.9-5.4A8.38 8.38 0 0 1 3 11.5a8.5 8.5 0 1 1 17 0Z"></path></svg>
-          <span>Comment</span>
-        </button>
+        {currentUser?.username !== user && (
+          <button
+            className="flex mt-3 items-center gap-1 hover:text-vscode-accent cursor-pointer transition font-medium focus:outline-none"
+            onClick={() => setShowComments((v) => !v)}
+            type="button"
+            title="Comentar"
+          >
+            {/* Ícone Lucide para comentário */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M21 11.5a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 0 1 12 21a8.38 8.38 0 0 1-5.4-1.9L3 21l1.9-5.4A8.38 8.38 0 0 1 3 11.5a8.5 8.5 0 1 1 17 0Z"></path></svg>
+            <span>Comment</span>
+          </button>
+        )}
         <PostActions id={id} likes={likes} dislikes={dislikes} retweets={retweets} />
       </div>
 

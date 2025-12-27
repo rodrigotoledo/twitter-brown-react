@@ -52,21 +52,21 @@ const Signup = () => {
           <label className="text-sm text-vscode-text-muted">Nome</label>
           <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
             <UserIcon size={16} />
-            <input name="name" value={form.name} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:!bg-vscode-input" autoComplete="name" />
+            <input name="name" value={form.name} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!" autoComplete="name" placeholder="Nome completo" title="Nome completo" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm text-vscode-text-muted">Username</label>
           <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
             <UserIcon size={16} />
-            <input name="username" value={form.username} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:!bg-vscode-input" autoComplete="username" />
+            <input name="username" value={form.username} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!" autoComplete="username" placeholder="Seu usuário" title="Seu usuário" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm text-vscode-text-muted">Email</label>
           <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
             <Mail size={16} />
-            <input name="email" type="email" value={form.email} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:!bg-vscode-input" autoComplete="email" />
+            <input name="email" type="email" value={form.email} onChange={handleChange} className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!" autoComplete="email" placeholder="Seu e-mail" title="Seu e-mail" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -78,7 +78,9 @@ const Signup = () => {
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
-              className="bg-transparent flex-1 p-2 outline-none autofill:!bg-vscode-input"
+              className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
+              placeholder="Senha"
+              title="Senha"
               autoComplete="new-password"
             />
             <button
@@ -101,7 +103,9 @@ const Signup = () => {
               type={showConfirm ? 'text' : 'password'}
               value={form.confirmPassword}
               onChange={handleChange}
-              className="bg-transparent flex-1 p-2 outline-none autofill:!bg-vscode-input"
+              className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
+              placeholder="Confirme a senha"
+              title="Confirme a senha"
               autoComplete="new-password"
             />
             <button
