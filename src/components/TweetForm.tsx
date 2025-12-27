@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Send } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 
 type Tweet = {
@@ -32,7 +33,7 @@ const TweetForm = ({ onPost }: Props) => {
         type='text'
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full p-3 bg-vscode-input text-vscode-text rounded outline-none border border-vscode-border focus:ring-2 focus:ring-vscode-accent placeholder-vscode-text-muted"
+        className="w-full p-3 bg-vscode-input text-vscode-text rounded outline-none border border-vscode-border focus:border-vscode-border placeholder-vscode-text-muted"
         placeholder="What's happening?"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -43,9 +44,11 @@ const TweetForm = ({ onPost }: Props) => {
       />
       <button
         onClick={handlePost}
-        className="px-5 py-2 rounded bg-vscode-accent text-white hover:bg-vscode-accent-hover transition w-fit font-semibold"
+        className="flex items-center gap-1 px-5 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow w-fit"
+        title="Postar tweet"
       >
-        Post
+        <Send size={18} />
+        Postar
       </button>
     </div>
   )

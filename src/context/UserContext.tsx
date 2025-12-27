@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 type User = {
@@ -23,18 +23,33 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+
+  // Restaurar usuário do localStorage ao iniciar
+  useEffect(() => {
+    const stored = localStorage.getItem('user')
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored))
+      } catch {}
+    }
+    setLoading(false)
+  }, [])
 
   const login = (data: User) => {
     setUser(data)
+    localStorage.setItem('user', JSON.stringify(data))
     navigate('/home')
   }
 
   const logout = () => {
     setUser(null)
+    localStorage.removeItem('user')
     navigate('/')
   }
 
+  if (loading) return null
   return (
     <UserContext.Provider value={{ user, login, logout }}>
       {children}

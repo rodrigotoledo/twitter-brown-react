@@ -1,9 +1,44 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+
+@theme {
+  --color-vscode-bg: #1e1e1e;
+  --color-vscode-sidebar: #252526;
+  --color-vscode-editor: #1e1e1e;
+  --color-vscode-input: #3c3c3c;
+  --color-vscode-hover: #2a2d2e;
+  --color-vscode-border: #454545;
+  --color-vscode-text: #cccccc;as
+  --color-vscode-text-muted: #858585;
+  --color-vscode-accent: #a0a0a0;
+  --color-vscode-accent-hover: #b3b3b3;
+}
+
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-vscode-hover) var(--color-vscode-sidebar);
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 10px;
+  background: var(--color-vscode-sidebar);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--color-vscode-hover) 60%, var(--color-vscode-accent) 100%);
+  border-radius: 10px;
+  border: 2px solid var(--color-vscode-sidebar);
+  transition: background 0.2s;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--color-vscode-accent) 60%, var(--color-vscode-accent-hover) 100%);
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: var(--color-vscode-sidebar);
+  border-radius: 10px;
+}
 body {
-  @apply bg-vscode-bg text-vscode-text;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',

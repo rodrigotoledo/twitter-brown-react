@@ -1,41 +1,39 @@
-import { useQuery } from '@tanstack/react-query'
 
-type Tweet = {
-  id: string
-  user: string
-  content: string
-}
 
-type ExternalPost = {
-  id: number
-  userId: number
-  body: string
-}
+import { usePosts } from '../context/PostsContext'
+import PostActions from './PostActions'
+
+import type { Post as Tweet } from '../context/PostsContext'
+
+// ...existing code...
 
 const SideBar = () => {
-  const { data: externalTweets, isLoading } = useQuery<Tweet[]>({
-    queryKey: ['externalTweets'],
-    queryFn: async () => {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=20')
-      const data: ExternalPost[] = await res.json()
-      return data.map((item: ExternalPost) => ({
-        id: item.id.toString(),
-        user: `user${item.userId}`,
-        content: item.body,
-      }))
-    },
-  })
+  const { posts: externalTweets, isLoading } = usePosts();
 
   return (
-    <div className="w-full p-4 md:border-r border-vscode-border overflow-y-auto bg-vscode-sidebar">
+    <div className="w-full p-4 md:border-r border-vscode-border overflow-y-auto bg-vscode-sidebar sidebar-scroll">
       <h2 className="text-xl font-semibold mb-4 text-vscode-text">Latest Tweets</h2>
       {isLoading ? (
         <p className="text-vscode-text-muted">Loading...</p>
       ) : (
-        externalTweets?.map((tweet: Tweet) => (
-          <div key={tweet.id} className="mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition">
-            <p className="text-sm font-semibold text-vscode-accent">@{tweet.user}</p>
-            <p className="text-sm text-vscode-text mt-1">{tweet.content}</p>
+        externalTweets?.slice(0, 10).map((tweet: Tweet) => (
+          <div
+            key={tweet.id}
+            className="mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition hover:shadow-lg hover:-translate-y-1"
+            style={{ willChange: 'box-shadow, background, transform' }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-sm font-semibold text-vscode-accent">@{tweet.userName || tweet.user}</p>
+              {tweet.userFullName && <span className="text-xs text-vscode-text-muted">({tweet.userFullName})</span>}
+            </div>
+            <p
+              className="text-sm text-vscode-text mt-1 truncate max-w-full"
+              title={tweet.content}
+              style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
+              {tweet.content}
+            </p>
+            <PostActions id={tweet.id} likes={tweet.likes} dislikes={tweet.dislikes} retweets={tweet.retweets} compact />
           </div>
         ))
       )}
