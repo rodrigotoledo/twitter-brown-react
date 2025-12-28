@@ -1,83 +1,138 @@
-# Twitter Brown - React App
+# Twitter Clone - Frontend (React)
 
-Aplicação React moderna construída com Vite, TypeScript e Tailwind CSS.
+Interface web desenvolvida com React, TypeScript e Vite para o clone do Twitter.
 
-## 🚀 Stack Tecnológica
+## 🚀 Tecnologias
 
-- **React 19** - Biblioteca UI
-- **TypeScript 5** - Tipagem estática
-- **Vite** - Build tool moderna e rápida
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router** - Roteamento
-- **TanStack Query** - Gerenciamento de estado assíncrono
-- **Vitest** - Framework de testes
-- **ESLint 9** - Linter com configuração moderna
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **State Management**: TanStack Query + Context API
+- **Testing**: Vitest
+- **Containerização**: Docker
 
-## 📦 Scripts Disponíveis
+## 📋 Funcionalidades
 
-### Desenvolvimento
+- ✅ Autenticação completa (JWT)
+- ✅ Feed de tweets em tempo real
+- ✅ Criar e publicar tweets
+- ✅ Sistema de likes/dislikes
+- ✅ Comentários em tweets
+- ✅ Sistema de retweets
+- ✅ Interface responsiva
+- ✅ Tema dark/light
+- ✅ Navegação SPA
 
+## 🛠️ Desenvolvimento com Docker
+
+### Iniciar Ambiente
 ```bash
-npm run dev        # Inicia servidor de desenvolvimento na porta 3000
-npm start          # Alias para npm run dev
+# Usando orquestração raiz (recomendado)
+cd ..
+docker-compose --profile dev up --build
+
+# Ou standalone
+docker-compose up --build
 ```
 
-### Build
-
+### Comandos Úteis
 ```bash
-npm run build      # Compila TypeScript e cria build de produção
-npm run preview    # Preview da build de produção
+# Ver logs
+docker-compose logs -f frontend
+
+# Acessar container
+docker-compose exec frontend sh
+
+# Build para produção
+docker-compose build
 ```
 
-### Qualidade de Código
-
+### Desenvolvimento Local
 ```bash
-npm run lint       # Verifica problemas de código
-npm run lint:fix   # Corrige automaticamente problemas
-```
-
-### Testes
-
-```bash
-npm test           # Executa testes com Vitest
-```
-
-## 🛠️ Instalação
-
-```bash
-# Instalar dependências
 npm install
-
-# Iniciar desenvolvimento
 npm run dev
 ```
 
-## ✨ Características
+## 🚀 Produção com Docker
 
-- ✅ **Sem peer dependency conflicts** - Todas as dependências são compatíveis
-- ✅ **TypeScript moderno** - Configuração otimizada para Vite
-- ✅ **ESLint 9** - Configuração flat config moderna
-- ✅ **Hot Module Replacement** - Atualizações instantâneas durante desenvolvimento
-- ✅ **Fast Refresh** - Mantém o estado durante edições
-- ✅ **Builds otimizados** - Chunks automáticos e tree-shaking
+### Deploy
+```bash
+# Build otimizado com Nginx
+docker-compose build --no-cache
 
-## 📝 Notas
+# Executar
+docker-compose up -d
 
-- O projeto foi migrado de Create React App para Vite
-- Não é mais necessário usar `--legacy-peer-deps`
-- Configuração moderna do ESLint com flat config
-- TypeScript 5.9 com todas as features mais recentes
+# Verificar se está rodando
+curl http://localhost
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Build Manual
+```bash
+# Build otimizado
+npm run build
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Servir com Nginx/Apache
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Variáveis de Ambiente
+```bash
+# Desenvolvimento
+VITE_API_URL=http://localhost:3000
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+# Produção
+VITE_API_URL=https://api.twitter-clone.com
+```
 
-## Learn More
+## 🎨 UI/UX
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Design System
+- **Framework CSS**: Tailwind CSS
+- **Tema**: Dark/Light mode
+- **Responsividade**: Mobile-first
+- **Animações**: CSS transitions
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Componentes
+- **TweetCard**: Exibição de tweets
+- **TweetForm**: Criação de tweets
+- **PostActions**: Likes, retweets, comentários
+- **SideBar**: Navegação lateral
+- **TopBar**: Barra superior
+
+## 📁 Estrutura
+
+```
+src/
+├── components/        # Componentes reutilizáveis
+├── context/          # Context API (Auth, Posts)
+├── pages/            # Páginas da aplicação
+├── hooks/            # Custom hooks
+├── utils/            # Utilitários
+└── index.tsx         # Ponto de entrada
+```
+
+## 🔧 Scripts
+
+```bash
+npm run dev          # Desenvolvimento (porta 5173)
+npm run build        # Build produção
+npm run preview      # Preview da build
+npm run test         # Executar testes
+npm run lint         # Linting
+```
+
+## 🌐 API Integration
+
+### Cliente HTTP
+- **TanStack Query**: Gerenciamento de estado assíncrono
+- **Context API**: Estado global (usuário, posts)
+- **JWT**: Autenticação automática
+
+### Endpoints Consumidos
+- `/auth/*` - Autenticação
+- `/tweets/*` - CRUD de tweets
+- `/users/*` - Perfil de usuários
+
+## 📄 Licença
+
+MIT
