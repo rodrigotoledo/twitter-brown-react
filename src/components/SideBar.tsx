@@ -38,7 +38,7 @@ const SideBar = () => {
             >
               {typeof tweet.content === 'string' ? tweet.content : JSON.stringify(tweet.content)}
             </p>
-            <PostActions id={tweet.id} likes={tweet.likes} dislikes={tweet.dislikes} retweets={tweet.retweets} compact />
+            <PostActions id={tweet.id} likes={tweet.likes} dislikes={tweet.dislikes} retweets={tweet.retweets} compact userName={tweet.userName || tweet.user} />
           </div>
         ))
       )}

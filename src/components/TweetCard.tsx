@@ -60,7 +60,7 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
             <span>Comment</span>
           </button>
         )}
-        <PostActions id={id} likes={likes} dislikes={dislikes} retweets={retweets} />
+        <PostActions id={id} likes={likes} dislikes={dislikes} retweets={retweets} userName={userName || user} />
       </div>
 
       {/* Comentários: só mostra se showComments for true */}

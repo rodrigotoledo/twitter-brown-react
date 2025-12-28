@@ -46,7 +46,10 @@ const Home = () => {
     const res = await fetch(`${apiUrl}/tweets/username/${username}`, { headers });
     if (!res.ok) throw new Error('Erro ao buscar tweets do usuário');
     const data = await res.json();
-    return Array.isArray(data) ? data : data.tweets || [];
+    return (Array.isArray(data) ? data : data.tweets || []).map((item: any) => ({
+      ...item,
+      likes: Array.isArray(item.likes) ? item.likes.length : (typeof item.likes === 'number' ? item.likes : 0),
+    }));
   };
 
   return (

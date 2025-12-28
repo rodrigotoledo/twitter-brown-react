@@ -75,6 +75,7 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       const arr = Array.isArray(data) ? data : data.tweets || [];
       return arr.map((item: any) => ({
         ...item,
+        likes: Array.isArray(item.likes) ? item.likes.length : (typeof item.likes === 'number' ? item.likes : 0),
         user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
         userName: item.user?.username || undefined,
         userFullName: item.user?.name || undefined,
@@ -124,21 +125,65 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
     return refetch();
   };
 
-  const likePost = (id: string) => {
+  const likePost = async (id: string) => {
     const liked = localStorage.getItem(`like_${id}`);
     if (liked) return;
     localStorage.setItem(`like_${id}`, '1');
-    queryClient.setQueryData<Post[]>(['externalPosts', users], (old) =>
+    // Otimista: incrementa localmente
+    queryClient.setQueryData<Post[]>(['latestTweets'], (old) =>
       old?.map((p) => (p.id === id ? { ...p, likes: (p.likes ?? 0) + 1 } : p))
     );
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiUrl}/tweets/${id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        // Atualiza o tweet com o retorno real do backend
+        queryClient.setQueryData<Post[]>(['latestTweets'], (old) =>
+          old?.map((p) => (p.id === id ? {
+            ...p,
+            likes: Array.isArray(updated.likes) ? updated.likes.length : updated.likes ?? 0
+          } : p))
+        );
+      }
+    } catch (e) { /* erro silencioso */ }
   };
-  const dislikePost = (id: string) => {
+  const dislikePost = async (id: string) => {
     const disliked = localStorage.getItem(`dislike_${id}`);
     if (disliked) return;
     localStorage.setItem(`dislike_${id}`, '1');
-    queryClient.setQueryData<Post[]>(['externalPosts', users], (old) =>
-      old?.map((p) => (p.id === id ? { ...p, dislikes: (p.dislikes ?? 0) + 1 } : p))
+    // Otimista: decrementa localmente
+    queryClient.setQueryData<Post[]>(['latestTweets'], (old) =>
+      old?.map((p) => (p.id === id ? { ...p, likes: Math.max((p.likes ?? 1) - 1, 0) } : p))
     );
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiUrl}/tweets/${id}/dislike`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        // Atualiza o tweet com o retorno real do backend
+        queryClient.setQueryData<Post[]>(['latestTweets'], (old) =>
+          old?.map((p) => (p.id === id ? {
+            ...p,
+            likes: Array.isArray(updated.likes) ? updated.likes.length : updated.likes ?? 0
+          } : p))
+        );
+      }
+    } catch (e) { /* erro silencioso */ }
   };
   const retweetPost = (id: string) => {
     const retweeted = localStorage.getItem(`retweet_${id}`);
