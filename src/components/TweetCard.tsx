@@ -1,7 +1,8 @@
 
 import CommentForm from './CommentForm'
 import { useUser } from '../context/UserContext'
-import { usePosts, Comment as PostComment } from '../context/PostsContext'
+import { usePosts } from '../context/usePosts'
+import type { Comment as PostComment } from '../context/PostsContext'
 import PostActions from './PostActions'
 import { useState } from 'react'
 

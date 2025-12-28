@@ -1,4 +1,4 @@
-import { usePosts } from '../context/PostsContext';
+import { usePosts } from '../context/usePosts';
 import { useState } from 'react';
 import { Heart, ThumbsDown, Repeat2 } from 'lucide-react';
 

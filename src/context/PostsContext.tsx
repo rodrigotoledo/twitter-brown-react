@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Types
@@ -34,13 +34,7 @@ interface PostsContextType {
   addComment: (id: string, comment: Comment) => void;
 }
 
-const PostsContext = createContext<PostsContextType | undefined>(undefined);
-
-export const usePosts = () => {
-  const ctx = useContext(PostsContext);
-  if (!ctx) throw new Error('usePosts must be used within PostsProvider');
-  return ctx;
-};
+export const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
@@ -58,29 +52,50 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
     },
   });
 
-  // Busca posts
+  // Busca posts do backend autenticado
   const { data: posts, isLoading, refetch } = useQuery<Post[]>({
-    queryKey: ['externalPosts', users],
+    queryKey: ['externalPosts'],
     queryFn: async () => {
-      const res = await fetch('https://dummyjson.com/posts');
-      const data = await res.json();
-      return data.posts.map((item: any) => {
-        const userData = users?.[item.userId];
-        return {
-          id: `ext-${item.id}`,
-          user: userData ? userData.username : `user${item.userId ?? ''}`,
-          userName: userData?.username,
-          userFullName: userData ? `${userData.firstName} ${userData.lastName}` : undefined,
-          content: item.body,
-          title: item.title,
-          tags: item.tags,
-          likes: item.reactions?.likes,
-          dislikes: item.reactions?.dislikes,
-          views: item.views,
-        };
-      });
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      try {
+        const res = await fetch(`${apiUrl}/tweets`, { headers });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error('[PostsContext] Erro ao buscar tweets:', err);
+          throw new Error(err.message || 'Erro ao buscar tweets');
+        }
+        const data = await res.json();
+        // Ajuste: sempre retorna user como string (username)
+        if (Array.isArray(data)) {
+          console.log('[PostsContext] Tweets recebidos:', data);
+          return data.map((item: any) => ({
+            ...item,
+            user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
+            userName: item.user?.username || undefined,
+            userFullName: item.user?.name || undefined,
+          }));
+        }
+        if (Array.isArray(data.tweets)) {
+          console.log('[PostsContext] Tweets recebidos:', data.tweets);
+          return data.tweets.map((item: any) => ({
+            ...item,
+            user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
+            userName: item.user?.username || undefined,
+            userFullName: item.user?.name || undefined,
+          }));
+        }
+        console.warn('[PostsContext] Nenhum tweet encontrado. Resposta:', data);
+        return [];
+      } catch (error) {
+        console.error('[PostsContext] Erro inesperado ao buscar tweets:', error);
+        throw error;
+      }
     },
-    enabled: !!users,
   });
 
   // Mutations locais (mock)
@@ -123,4 +138,5 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </PostsContext.Provider>
   );
-};
+}
+

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import MatrixLayout from '../components/MatrixLayout';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -28,7 +29,8 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-vscode-bg">
+    <MatrixLayout>
+    <div className='flex justify-center items-center min-h-screen'>
       <form onSubmit={handleSubmit} className="bg-vscode-sidebar p-8 rounded shadow-lg border border-vscode-border w-full max-w-md flex flex-col gap-4">
         <h2 className="text-xl font-bold text-vscode-text mb-2 flex items-center gap-2">
           <KeyRound size={22} /> Esqueci a senha
@@ -55,6 +57,7 @@ const ForgotPassword = () => {
         <button type="button" className="flex items-center justify-center text-xs text-vscode-accent mt-1 underline text-center" onClick={() => navigate('/')}>Voltar para login</button>
       </form>
     </div>
+    </MatrixLayout>
   );
 };
 
