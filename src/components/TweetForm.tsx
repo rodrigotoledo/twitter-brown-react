@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query';
+import { usePosts } from '../context/usePosts';
 import { Send } from 'lucide-react'
 
 
@@ -15,9 +17,12 @@ type Props = {
 
 
 const TweetForm = ({ onPost, onError }: Props) => {
+    const { refetchLatest } = usePosts();
   // const { user } = useUser() // user not used
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handlePost = async () => {
     if (!text.trim()) return;
@@ -48,6 +53,13 @@ const TweetForm = ({ onPost, onError }: Props) => {
       };
       onPost(tweet)
       setText('')
+      // Invalida queries para atualizar listas
+      queryClient.invalidateQueries({ queryKey: ['latestTweets'] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: ['userTweets', user.username] });
+      }
+      // Refetch imediato do latestTweets para garantir atualização do SideBar
+      if (refetchLatest) await refetchLatest();
     } catch (err) {
       if (onError && err instanceof Error) onError(err.message)
     } finally {

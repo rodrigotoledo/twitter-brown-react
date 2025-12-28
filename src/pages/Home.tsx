@@ -1,7 +1,7 @@
-import { useUser } from '../context/UserContext'
-import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { usePosts } from '../context/usePosts'
+import { useUser } from '../context/UserContext';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import TopBar from '../components/TopBar'
 import SideBar from '../components/SideBar'
 import TweetForm from '../components/TweetForm'
@@ -11,17 +11,43 @@ import type { Post as Tweet } from '../context/PostsContext'
 import MatrixLayout from '../components/MatrixLayout'
 
 const Home = () => {
-  const { user } = useUser()
-  const navigate = useNavigate()
-
-  const [myTweets, setMyTweets] = useState<Tweet[]>([])
-  const { posts: externalPosts, isLoading: loadingPosts } = usePosts();
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { username } = useParams();
+  const isCurrentUser = !username || user?.username === username;
 
   useEffect(() => {
-    if (!user) navigate('/')
-  }, [user, navigate])
+    if (!user) navigate('/');
+  }, [user, navigate]);
 
-  if (!user) return null
+  if (!user) return null;
+
+  // Função para buscar tweets pelo username (sempre)
+  const fetchTweetsByUsername = async (username: string) => {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+    console.log(`[Home] Fetching tweets for username: ${username}`);
+    const res = await fetch(`${apiUrl}/tweets/username/${username}`, { headers });
+    if (!res.ok) throw new Error('Erro ao buscar tweets do usuário');
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.tweets || [];
+  };
+
+  const usernameToFetch = username || user?.username;
+  const {
+    data: tweetsToShow,
+    isLoading: loadingTweets,
+    refetch,
+  } = useQuery({
+    queryKey: ['tweetsForHome', usernameToFetch],
+    queryFn: () => fetchTweetsByUsername(usernameToFetch!),
+    enabled: !!usernameToFetch,
+    refetchOnWindowFocus: true,
+  });
 
   return (
     <MatrixLayout>
@@ -29,62 +55,46 @@ const Home = () => {
         <div className="sticky top-0 z-20 bg-vscode-sidebar px-6 py-3 shadow-lg border-b border-vscode-border flex justify-between items-center">
           <TopBar />
         </div>
-
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           <div className="h-40 overflow-y-auto border-b border-vscode-border md:h-full md:w-1/3 lg:w-1/4 md:border-b-0 md:border-r">
             <SideBar />
           </div>
-
           <div className="flex-1 flex flex-col md:h-full min-h-0 overflow-hidden p-4">
-            <h1 className='text-lg font-semibold mb-2'>My Tweets</h1>
-            <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
-              <TweetForm 
-                onPost={(tweet) => setMyTweets([tweet, ...myTweets])}
-                onError={(err) => alert(err)}
-              />
-            </div>
+            <h1 className='text-lg font-semibold mb-2'>Tweets de @{usernameToFetch}</h1>
+            {isCurrentUser && (
+              <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
+                <TweetForm onPost={refetch} onError={(err) => alert(err)} />
+              </div>
+            )}
             <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4">
-              {myTweets.map((tweet) => (
-                <TweetCard
-                  key={tweet.id}
-                  id={tweet.id}
-                  user={tweet.user}
-                  userName={tweet.userName}
-                  userFullName={tweet.userFullName}
-                  content={tweet.content}
-                  title={tweet.title}
-                  tags={tweet.tags}
-                  likes={tweet.likes}
-                  dislikes={tweet.dislikes}
-                  // views prop removed (not supported by TweetCard)
-                  retweets={tweet.retweets}
-                  comments={tweet.comments}
-                />
-              ))}
-              {loadingPosts && <p className="text-vscode-text-muted">Carregando posts...</p>}
-              {externalPosts && externalPosts.map((tweet: Tweet) => (
-                <TweetCard
-                  key={tweet.id}
-                  id={tweet.id}
-                  user={tweet.user}
-                  userName={tweet.userName}
-                  userFullName={tweet.userFullName}
-                  content={tweet.content}
-                  title={tweet.title}
-                  tags={tweet.tags}
-                  likes={tweet.likes}
-                  dislikes={tweet.dislikes}
-                  // views prop removed (not supported by TweetCard)
-                  retweets={tweet.retweets}
-                  comments={tweet.comments}
-                />
-              ))}
+              {loadingTweets && <p className="text-vscode-text-muted">Carregando tweets...</p>}
+              {Array.isArray(tweetsToShow) && tweetsToShow.length > 0 ? (
+                tweetsToShow.map((tweet: Tweet) => (
+                  <TweetCard
+                    key={tweet.id}
+                    id={tweet.id}
+                    userName={tweet.user?.username || tweet.userName}
+                    userFullName={tweet.user?.name || tweet.userFullName}
+                    content={tweet.content}
+                    title={tweet.title}
+                    tags={tweet.tags}
+                    likes={tweet.likes}
+                    dislikes={tweet.dislikes}
+                    retweets={tweet.retweets}
+                    comments={tweet.comments}
+                  />
+                ))
+              ) : (
+                !loadingTweets && (
+                  <p className="text-vscode-text-muted">Nenhum tweet encontrado.</p>
+                )
+              )}
             </div>
           </div>
         </div>
       </div>
     </MatrixLayout>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

@@ -25,9 +25,12 @@ export type Post = {
 
 // Context type
 interface PostsContextType {
-  posts: Post[] | undefined;
-  isLoading: boolean;
-  refetch: () => void;
+  latestTweets: Post[] | undefined;
+  isLoadingLatest: boolean;
+  refetchLatest: () => void;
+  userTweets: (userId: string) => Post[] | undefined;
+  isLoadingUser: (userId: string) => boolean;
+  refetchUser: (userId: string) => void;
   likePost: (id: string) => void;
   dislikePost: (id: string) => void;
   retweetPost: (id: string) => void;
@@ -52,9 +55,13 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
     },
   });
 
-  // Busca posts do backend autenticado
-  const { data: posts, isLoading, refetch } = useQuery<Post[]>({
-    queryKey: ['externalPosts'],
+  // Query global: últimos tweets
+  const {
+    data: latestTweets,
+    isLoading: isLoadingLatest,
+    refetch: refetchLatest
+  } = useQuery<Post[]>({
+    queryKey: ['latestTweets'],
     queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || '';
       const token = localStorage.getItem('token');
@@ -62,43 +69,60 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      try {
-        const res = await fetch(`${apiUrl}/tweets`, { headers });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          console.error('[PostsContext] Erro ao buscar tweets:', err);
-          throw new Error(err.message || 'Erro ao buscar tweets');
-        }
-        const data = await res.json();
-        // Ajuste: sempre retorna user como string (username)
-        if (Array.isArray(data)) {
-          console.log('[PostsContext] Tweets recebidos:', data);
-          return data.map((item: any) => ({
-            ...item,
-            user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
-            userName: item.user?.username || undefined,
-            userFullName: item.user?.name || undefined,
-          }));
-        }
-        if (Array.isArray(data.tweets)) {
-          console.log('[PostsContext] Tweets recebidos:', data.tweets);
-          return data.tweets.map((item: any) => ({
-            ...item,
-            user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
-            userName: item.user?.username || undefined,
-            userFullName: item.user?.name || undefined,
-          }));
-        }
-        console.warn('[PostsContext] Nenhum tweet encontrado. Resposta:', data);
-        return [];
-      } catch (error) {
-        console.error('[PostsContext] Erro inesperado ao buscar tweets:', error);
-        throw error;
-      }
+      const res = await fetch(`${apiUrl}/tweets/latest`, { headers });
+      if (!res.ok) throw new Error('Erro ao buscar latest tweets');
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : data.tweets || [];
+      return arr.map((item: any) => ({
+        ...item,
+        user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
+        userName: item.user?.username || undefined,
+        userFullName: item.user?.name || undefined,
+      }));
     },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
-  // Mutations locais (mock)
+  // Query dos tweets do usuário
+  const userTweetsQuery = (userId: string) => useQuery<Post[]>({
+    queryKey: ['userTweets'],
+    queryFn: async () => {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      // Não envia userId, backend pega do token
+      const res = await fetch(`${apiUrl}/tweets`, { headers });
+      if (!res.ok) throw new Error('Erro ao buscar tweets do usuário');
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : data.tweets || [];
+      return arr.map((item: any) => ({
+        ...item,
+        user: typeof item.user === 'object' && item.user?.username ? item.user.username : item.user,
+        userName: item.user?.username || undefined,
+        userFullName: item.user?.name || undefined,
+      }));
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  const userTweets = (userId: string) => {
+    const { data } = userTweetsQuery(userId);
+    return data;
+  };
+  const isLoadingUser = (userId: string) => {
+    const { isLoading } = userTweetsQuery(userId);
+    return isLoading;
+  };
+  const refetchUser = (userId: string) => {
+    const { refetch } = userTweetsQuery(userId);
+    return refetch();
+  };
+
   const likePost = (id: string) => {
     const liked = localStorage.getItem(`like_${id}`);
     if (liked) return;
@@ -134,7 +158,7 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <PostsContext.Provider value={{ posts, isLoading, refetch, likePost, dislikePost, retweetPost, addComment }}>
+    <PostsContext.Provider value={{ latestTweets, isLoadingLatest, refetchLatest, userTweets, isLoadingUser, refetchUser, likePost, dislikePost, retweetPost, addComment }}>
       {children}
     </PostsContext.Provider>
   );
