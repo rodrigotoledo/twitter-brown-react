@@ -1,5 +1,5 @@
-import MatrixRain from 'react-matrix-rain';
-import { ReactNode } from 'react';
+import MatrixRain from "react-matrix-rain";
+import { ReactNode } from "react";
 
 export default function MatrixLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,9 +10,7 @@ export default function MatrixLayout({ children }: { children: ReactNode }) {
         density={0.7}
         zIndex={0}
       />
-      <div className="relative z-10 w-full ">
-        {children}
-      </div>
+      <div className="relative z-10 w-full ">{children}</div>
     </div>
   );
 }

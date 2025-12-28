@@ -1,14 +1,14 @@
-import { useUser } from '../context/UserContext';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import TopBar from '../components/TopBar'
-import SideBar from '../components/SideBar'
-import TweetForm from '../components/TweetForm'
-import TweetCard from '../components/TweetCard'
+import { useUser } from "../context/UserContext";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import TopBar from "../components/TopBar";
+import SideBar from "../components/SideBar";
+import TweetForm from "../components/TweetForm";
+import TweetCard from "../components/TweetCard";
 
-import type { Post as Tweet } from '../context/PostsContext'
-import MatrixLayout from '../components/MatrixLayout'
+import type { Post as Tweet } from "../context/PostsContext";
+import MatrixLayout from "../components/MatrixLayout";
 
 const Home = () => {
   const { user } = useUser();
@@ -17,7 +17,7 @@ const Home = () => {
   const isCurrentUser = !username || user?.username === username;
 
   useEffect(() => {
-    if (!user) navigate('/');
+    if (!user) navigate("/");
   }, [user, navigate]);
 
   const usernameToFetch = username || user?.username;
@@ -26,7 +26,7 @@ const Home = () => {
     isLoading: loadingTweets,
     refetch,
   } = useQuery({
-    queryKey: ['tweetsForHome', usernameToFetch],
+    queryKey: ["tweetsForHome", usernameToFetch],
     queryFn: () => fetchTweetsByUsername(usernameToFetch!),
     enabled: !!user && !!usernameToFetch,
     refetchOnWindowFocus: true,
@@ -36,20 +36,44 @@ const Home = () => {
 
   // Função para buscar tweets pelo username (sempre)
   const fetchTweetsByUsername = async (username: string) => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const token = localStorage.getItem('token');
+    const apiUrl = import.meta.env.VITE_API_URL || "";
+    const token = localStorage.getItem("token");
     const headers = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-    console.log(`[Home] Fetching tweets for username: ${username}`);
-    const res = await fetch(`${apiUrl}/tweets/username/${username}`, { headers });
-    if (!res.ok) throw new Error('Erro ao buscar tweets do usuário');
+    const res = await fetch(`${apiUrl}/tweets/username/${username}`, {
+      headers,
+    });
+    if (!res.ok) throw new Error("Erro ao buscar tweets do usuário");
     const data = await res.json();
-    return (Array.isArray(data) ? data : data.tweets || []).map((item: any) => ({
-      ...item,
-      likes: Array.isArray(item.likes) ? item.likes.length : (typeof item.likes === 'number' ? item.likes : 0),
-    }));
+    return (Array.isArray(data) ? data : data.tweets || []).map(
+      (item: {
+        id: number;
+        creatorUsername: string;
+        content: string;
+        likes: number[] | number;
+        dislikes: number[] | number;
+        retweets: number[] | number;
+        comments: { id: number; creatorUsername: string; content: string }[];
+        createdAt: string;
+      }) => ({
+        id: String(item.id),
+        user: item.creatorUsername,
+        content: item.content,
+        likes: item.likes,
+        dislikes: item.dislikes,
+        retweets: item.retweets,
+        userName: item.creatorUsername,
+        userFullName: undefined,
+        comments: item.comments?.map((comment: { id: number; creatorUsername: string; content: string }) => ({
+          id: String(comment.id),
+          user: comment.creatorUsername,
+          content: comment.content,
+        })) || [],
+        createdAt: item.createdAt,
+      }),
+    );
   };
 
   return (
@@ -63,35 +87,43 @@ const Home = () => {
             <SideBar />
           </div>
           <div className="flex-1 flex flex-col md:h-full min-h-0 overflow-hidden p-4">
-            <h1 className='text-lg font-semibold mb-2'>Tweets de @{usernameToFetch}</h1>
+            <h1 className="text-lg font-semibold mb-2">
+              Tweets de @{usernameToFetch}
+            </h1>
             {isCurrentUser && (
               <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
-                <TweetForm onPost={() => refetch()} onError={(err) => alert(err)} />
+                <TweetForm
+                  onPost={() => refetch()}
+                  onError={(err) => alert(err)}
+                />
               </div>
             )}
             <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4">
-              {loadingTweets && <p className="text-vscode-text-muted">Carregando tweets...</p>}
-              {Array.isArray(tweetsToShow) && tweetsToShow.length > 0 ? (
-                tweetsToShow.map((tweet: Tweet) => (
-                  <TweetCard
-                    key={tweet.id}
-                    id={tweet.id}
-                    userName={tweet.user?.username || tweet.userName}
-                    userFullName={tweet.user?.name || tweet.userFullName}
-                    content={tweet.content}
-                    title={tweet.title}
-                    tags={tweet.tags}
-                    likes={tweet.likes}
-                    dislikes={tweet.dislikes}
-                    retweets={tweet.retweets}
-                    comments={tweet.comments}
-                  />
-                ))
-              ) : (
-                !loadingTweets && (
-                  <p className="text-vscode-text-muted">Nenhum tweet encontrado.</p>
-                )
+              {loadingTweets && (
+                <p className="text-vscode-text-muted">Carregando tweets...</p>
               )}
+              {Array.isArray(tweetsToShow) && tweetsToShow.length > 0
+                ? tweetsToShow.map((tweet: Tweet) => (
+                    <TweetCard
+                      key={tweet.id}
+                      id={tweet.id}
+                      user={typeof tweet.user === 'string' ? tweet.user : tweet.userName || ''}
+                      userName={tweet.userName}
+                      userFullName={tweet.userFullName}
+                      content={tweet.content}
+                      title={tweet.title}
+                      tags={tweet.tags}
+                      likes={tweet.likes}
+                      dislikes={tweet.dislikes}
+                      retweets={tweet.retweets}
+                      comments={tweet.comments}
+                    />
+                  ))
+                : !loadingTweets && (
+                    <p className="text-vscode-text-muted">
+                      Nenhum tweet encontrado.
+                    </p>
+                  )}
             </div>
           </div>
         </div>

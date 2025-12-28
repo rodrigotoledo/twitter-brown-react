@@ -1,11 +1,11 @@
-import { useUser } from '../context/UserContext'
-import { LogOut } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useUser } from "../context/UserContext";
+import { LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const TopBar = () => {
-  const { user, logout } = useUser()
+  const { user, logout } = useUser();
 
-  if (!user) return null
+  if (!user) return null;
 
   return (
     <header className="w-full flex justify-between items-center px-6 py-3 bg-vscode-sidebar sticky top-0 z-20">
@@ -31,7 +31,7 @@ const TopBar = () => {
         </button>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default TopBar
+export default TopBar;

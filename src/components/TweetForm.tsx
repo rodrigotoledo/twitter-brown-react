@@ -1,81 +1,91 @@
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query';
-import { usePosts } from '../context/usePosts';
-import { Send } from 'lucide-react'
-
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePosts } from "../context/usePosts";
+import { Send } from "lucide-react";
 
 type Tweet = {
-  id: string
-  user: string
-  content: string
-}
+  id: string;
+  user: string;
+  content: string;
+};
 
 type Props = {
-  onPost: (tweet: Tweet) => void
-  onError?: (error: string) => void
-}
-
+  onPost: (tweet: Tweet) => void;
+  onError?: (error: string) => void;
+};
 
 const TweetForm = ({ onPost, onError }: Props) => {
-    const { refetchLatest } = usePosts();
+  const { refetchLatest } = usePosts();
   // const { user } = useUser() // user not used
-  const [text, setText] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   const handlePost = async () => {
     if (!text.trim()) return;
-    setLoading(true)
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token')
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem("token");
+      const apiUrl = import.meta.env.VITE_API_URL || "";
       const headers = {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
       const res = await fetch(`${apiUrl}/tweets`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({ content: text.trim() }),
-      })
+      });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || 'Erro ao postar tweet')
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Erro ao postar tweet");
       }
-      const data = await res.json()
-      // Ajuste: garantir que user seja string (username)
+      const data = await res.json();
+      // API simplificada retorna dados diretos
       const tweet = {
-        ...data,
-        user: typeof data.user === 'object' && data.user?.username ? data.user.username : data.user,
-        userName: data.user?.username || undefined,
-        userFullName: data.user?.name || undefined,
+        id: String(data.id),
+        user: data.creatorUsername,
+        content: data.content,
+        likes: data.likes,
+        dislikes: data.dislikes,
+        retweets: data.retweets,
+        userName: data.creatorUsername,
+        userFullName: undefined,
+        comments: data.comments.map((comment: { id: number; creatorUsername: string; content: string }) => ({
+          id: String(comment.id),
+          user: comment.creatorUsername,
+          content: comment.content,
+        })),
+        createdAt: data.createdAt,
       };
-      onPost(tweet)
-      setText('')
+      onPost(tweet);
+      setText("");
       // Invalida queries para atualizar listas
-      queryClient.invalidateQueries({ queryKey: ['latestTweets'] });
+      queryClient.invalidateQueries({ queryKey: ["latestTweets"] });
       if (tweet?.userName) {
-        queryClient.invalidateQueries({ queryKey: ['userTweetsByUsername', tweet.userName] });
+        queryClient.invalidateQueries({
+          queryKey: ["userTweetsByUsername", tweet.userName],
+        });
       }
       // Refetch imediato do latestTweets para garantir atualização do SideBar
       if (refetchLatest) await refetchLatest();
     } catch (err) {
-      if (onError && err instanceof Error) onError(err.message)
+      if (onError && err instanceof Error) onError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col space-y-3">
       <input
-        type='text'
+        type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         className="w-full p-3 bg-vscode-input text-vscode-text rounded outline-none border border-vscode-border focus:border-vscode-border placeholder-vscode-text-muted"
         placeholder="What's happening?"
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === "Enter") {
             e.preventDefault();
             handlePost();
           }
@@ -88,10 +98,10 @@ const TweetForm = ({ onPost, onError }: Props) => {
         disabled={loading}
       >
         <Send size={18} />
-        {loading ? 'Postando...' : 'Postar'}
+        {loading ? "Postando..." : "Postar"}
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default TweetForm
+export default TweetForm;

@@ -1,11 +1,10 @@
-
-import CommentForm from './CommentForm'
-import { useUser } from '../context/UserContext'
-import { usePosts } from '../context/usePosts'
-import type { Comment as PostComment } from '../context/PostsContext'
-import PostActions from './PostActions'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import CommentForm from "./CommentForm";
+import { useUser } from "../context/UserContext";
+import { usePosts } from "../context/usePosts";
+import type { Comment as PostComment } from "../context/PostsContext";
+import PostActions from "./PostActions";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 type Props = {
   id: string;
@@ -21,11 +20,25 @@ type Props = {
   comments?: PostComment[];
   compact?: boolean;
   showComments?: boolean;
-  theme?: 'sidebar' | 'home';
-}
+  theme?: "sidebar" | "home";
+};
 
-
-const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, userName, userFullName, comments, compact = false, showComments = true, theme = 'home' }: Props) => {
+const TweetCard = ({
+  id,
+  user,
+  content,
+  title,
+  tags,
+  likes,
+  dislikes,
+  retweets,
+  userName,
+  userFullName,
+  comments,
+  compact = false,
+  showComments = true,
+  theme = "home",
+}: Props) => {
   const { user: currentUser } = useUser();
   const { addComment } = usePosts();
   const [showCommentsState, setShowCommentsState] = useState(false);
@@ -35,14 +48,15 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
   };
 
   // Tema baseado na prop
-  const cardClasses = theme === 'sidebar'
-    ? "mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition hover:shadow-lg hover:-translate-y-1 will-change-transform will-change-shadow will-change-bg"
-    : "bg-vscode-sidebar p-4 rounded shadow-lg border border-vscode-border hover:border-vscode-accent transition flex flex-col mb-4 hover:shadow-2xl hover:-translate-y-1 will-change-transform will-change-shadow will-change-border-color";
+  const cardClasses =
+    theme === "sidebar"
+      ? "mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition hover:shadow-lg hover:-translate-y-1 will-change-transform will-change-shadow will-change-bg"
+      : "bg-vscode-sidebar p-4 rounded shadow-lg border border-vscode-border hover:border-vscode-accent transition flex flex-col mb-4 hover:shadow-2xl hover:-translate-y-1 will-change-transform will-change-shadow will-change-border-color";
 
   return (
     <div className={cardClasses}>
       <div className="flex items-center gap-2 mb-1">
-        {theme === 'sidebar' ? (
+        {theme === "sidebar" ? (
           <Link
             to={`/tweets/${userName || user}`}
             className="text-sm font-semibold text-vscode-accent hover:underline cursor-pointer"
@@ -50,48 +64,75 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
             @{userName || user}
           </Link>
         ) : (
-          <p className="text-sm font-semibold text-vscode-accent">@{userName || user}</p>
+          <p className="text-sm font-semibold text-vscode-accent">
+            @{userName || user}
+          </p>
         )}
-        {userFullName && <span className="text-xs text-vscode-text-muted">({userFullName})</span>}
+        {userFullName && (
+          <span className="text-xs text-vscode-text-muted">
+            ({userFullName})
+          </span>
+        )}
       </div>
-      {title && theme !== 'sidebar' && <h3 className="text-base font-bold mt-1 text-vscode-text">{title}</h3>}
+      {title && theme !== "sidebar" && (
+        <h3 className="text-base font-bold mt-1 text-vscode-text">{title}</h3>
+      )}
       <p
-        className={theme === 'sidebar' ? "text-sm text-vscode-text mt-1 truncate max-w-full block overflow-hidden text-ellipsis whitespace-nowrap" : "text-sm text-vscode-text mt-2"}
-        title={typeof content === 'string' ? content : JSON.stringify(content)}
+        className={
+          theme === "sidebar"
+            ? "text-sm text-vscode-text mt-1 truncate max-w-full block overflow-hidden text-ellipsis whitespace-nowrap"
+            : "text-sm text-vscode-text mt-2"
+        }
+        title={typeof content === "string" ? content : JSON.stringify(content)}
       >
-        {typeof content === 'string' ? content : JSON.stringify(content)}
+        {typeof content === "string" ? content : JSON.stringify(content)}
       </p>
-      {tags && tags.length > 0 && theme !== 'sidebar' && (
+      {tags && tags.length > 0 && theme !== "sidebar" && (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (
-            <span key={tag} className="bg-vscode-hover text-vscode-text-muted px-2 py-0.5 rounded text-xs">#{tag}</span>
+            <span
+              key={tag}
+              className="bg-vscode-hover text-vscode-text-muted px-2 py-0.5 rounded text-xs"
+            >
+              #{tag}
+            </span>
           ))}
         </div>
       )}
-      <div className={`flex mt-3 gap-4 text-xs text-vscode-text-muted items-center ${compact || theme === 'sidebar' ? 'space-x-2' : 'space-x-4'}`}>
-        {showComments && currentUser?.username !== user && theme !== 'sidebar' && (
-          <button
-            className="flex items-center gap-1 hover:text-vscode-accent cursor-pointer transition font-medium focus:outline-none"
-            onClick={() => setShowCommentsState((v) => !v)}
-            type="button"
-            title="Comentar"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M21 11.5a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 0 1 12 21a8.38 8.38 0 0 1-5.4-1.9L3 21l1.9-5.4A8.38 8.38 0 0 1 3 11.5a8.5 8.5 0 1 1 17 0Z"></path></svg>
-            <span>Comment</span>
-          </button>
-        )}
-        <PostActions id={id} likes={likes} dislikes={dislikes} retweets={retweets} compact={compact || theme === 'sidebar'} userName={userName || user} />
+      <div
+        className={`flex mt-3 gap-4 text-xs text-vscode-text-muted items-center ${compact || theme === "sidebar" ? "space-x-2" : "space-x-4"}`}
+      >
+        <PostActions
+          id={id}
+          likes={likes}
+          dislikes={dislikes}
+          retweets={retweets}
+          comments={comments}
+          compact={compact || theme === "sidebar"}
+          userName={userName || user}
+          showComments={showComments}
+          onToggleComments={() => setShowCommentsState((v) => !v)}
+        />
       </div>
 
       {/* Comentários: só mostra se showComments for true e estiver na home */}
-      {showComments && showCommentsState && theme !== 'sidebar' && (
+      {showComments && showCommentsState && theme !== "sidebar" && (
         <div className="mt-4">
-          <CommentForm onAdd={handleAddComment} user={currentUser?.username || 'anonymous'} />
+          <CommentForm
+            onAdd={handleAddComment}
+            user={currentUser?.username || "anonymous"}
+          />
           {comments && comments.length > 0 && (
             <div className="mt-2 space-y-2">
               {comments.map((c) => (
-                <div key={c.id} className="bg-vscode-input border border-vscode-border rounded px-3 py-2 text-sm text-vscode-text">
-                  <span className="font-semibold text-vscode-accent">@{c.user}</span>: {c.content}
+                <div
+                  key={c.id}
+                  className="bg-vscode-input border border-vscode-border rounded px-3 py-2 text-sm text-vscode-text"
+                >
+                  <span className="font-semibold text-vscode-accent">
+                    @{typeof c.user === "string" ? c.user : c.user.username}
+                  </span>
+                  : {c.content}
                 </div>
               ))}
             </div>
@@ -100,6 +141,6 @@ const TweetCard = ({ id, user, content, title, tags, likes, dislikes, retweets, 
       )}
     </div>
   );
-}
+};
 
-export default TweetCard
+export default TweetCard;

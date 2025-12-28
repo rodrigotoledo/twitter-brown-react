@@ -1,9 +1,8 @@
-
-import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -17,4 +16,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
