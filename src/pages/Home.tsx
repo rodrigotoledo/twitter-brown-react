@@ -22,6 +22,18 @@ const Home = () => {
 
   if (!user) return null;
 
+  const usernameToFetch = username || user?.username;
+  const {
+    data: tweetsToShow,
+    isLoading: loadingTweets,
+    refetch,
+  } = useQuery({
+    queryKey: ['tweetsForHome', usernameToFetch],
+    queryFn: () => fetchTweetsByUsername(usernameToFetch!),
+    enabled: !!user && !!usernameToFetch,
+    refetchOnWindowFocus: true,
+  });
+
   // Função para buscar tweets pelo username (sempre)
   const fetchTweetsByUsername = async (username: string) => {
     const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -36,18 +48,6 @@ const Home = () => {
     const data = await res.json();
     return Array.isArray(data) ? data : data.tweets || [];
   };
-
-  const usernameToFetch = username || user?.username;
-  const {
-    data: tweetsToShow,
-    isLoading: loadingTweets,
-    refetch,
-  } = useQuery({
-    queryKey: ['tweetsForHome', usernameToFetch],
-    queryFn: () => fetchTweetsByUsername(usernameToFetch!),
-    enabled: !!usernameToFetch,
-    refetchOnWindowFocus: true,
-  });
 
   return (
     <MatrixLayout>

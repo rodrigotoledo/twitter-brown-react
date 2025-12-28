@@ -4,9 +4,11 @@ import { Mail, User as UserIcon, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { faker } from '@faker-js/faker';
 import { useUser } from '../context/UserContext';
 import MatrixLayout from '../components/MatrixLayout';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Signup = () => {
   const { login } = useUser();
+  const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
     name: '',
@@ -57,6 +59,7 @@ const Signup = () => {
       const data = await res.json();
       if (data.access_token) {
         localStorage.setItem('token', data.access_token);
+        queryClient.invalidateQueries(['latestTweets']);
       }
       login({
         name: data.name || form.name,

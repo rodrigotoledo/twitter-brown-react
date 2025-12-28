@@ -56,6 +56,7 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // Query global: últimos tweets
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const {
     data: latestTweets,
     isLoading: isLoadingLatest,
@@ -64,7 +65,6 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
     queryKey: ['latestTweets'],
     queryFn: async () => {
       const apiUrl = import.meta.env.VITE_API_URL || '';
-      const token = localStorage.getItem('token');
       const headers = {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -80,6 +80,7 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         userFullName: item.user?.name || undefined,
       }));
     },
+    enabled: !!token,
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });

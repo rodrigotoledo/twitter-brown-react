@@ -3,9 +3,11 @@ import { useUser } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import { UserPlus, KeyRound } from 'lucide-react'
 import MatrixLayout from '../components/MatrixLayout';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Login = () => {
   const { user, login } = useUser()
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -39,6 +41,7 @@ const Login = () => {
       const data = await res.json();
       if (data.access_token) {
         localStorage.setItem('token', data.access_token);
+        queryClient.invalidateQueries(['latestTweets']);
       }
       login({ name: data.name || name, email: data.email || email, username: data.username || username });
     } catch (err) {
