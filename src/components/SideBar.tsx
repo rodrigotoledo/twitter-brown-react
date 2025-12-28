@@ -1,10 +1,9 @@
 
 
 import { usePosts } from '../context/usePosts'
-import PostActions from './PostActions'
+import TweetCard from './TweetCard'
 
 import type { Post as Tweet } from '../context/PostsContext'
-import { Link } from 'react-router-dom';
 
 // ...existing code...
 
@@ -18,28 +17,20 @@ const SideBar = () => {
       {isLoadingLatest ? (
         <p className="text-vscode-text-muted">Loading...</p>
       ) : (
-        latestTweets?.slice(0, 10).map((tweet: Tweet) => (
-          <div
+        latestTweets?.map((tweet: Tweet) => (
+          <TweetCard
             key={tweet.id}
-            className="mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition hover:shadow-lg hover:-translate-y-1 will-change-transform will-change-shadow will-change-bg"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Link
-                to={`/tweets/${tweet.userName || tweet.user}`}
-                className="text-sm font-semibold text-vscode-accent hover:underline cursor-pointer"
-              >
-                @{tweet.userName || tweet.user}
-              </Link>
-              {tweet.userFullName && <span className="text-xs text-vscode-text-muted">({tweet.userFullName})</span>}
-            </div>
-            <p
-              className="text-sm text-vscode-text mt-1 truncate max-w-full block overflow-hidden text-ellipsis whitespace-nowrap"
-              title={typeof tweet.content === 'string' ? tweet.content : JSON.stringify(tweet.content)}
-            >
-              {typeof tweet.content === 'string' ? tweet.content : JSON.stringify(tweet.content)}
-            </p>
-            <PostActions id={tweet.id} likes={tweet.likes} dislikes={tweet.dislikes} retweets={tweet.retweets} compact userName={tweet.userName || tweet.user} />
-          </div>
+            id={tweet.id}
+            user={tweet.user}
+            content={tweet.content}
+            likes={tweet.likes}
+            dislikes={tweet.dislikes}
+            retweets={tweet.retweets}
+            userName={tweet.userName}
+            userFullName={tweet.userFullName}
+            theme="sidebar"
+            showComments={false}
+          />
         ))
       )}
     </div>

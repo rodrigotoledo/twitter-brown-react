@@ -1,6 +1,5 @@
 import { usePosts } from '../context/usePosts';
 import { useUser } from '../context/UserContext';
-import { useState } from 'react';
 import { Heart, ThumbsDown, Repeat2 } from 'lucide-react';
 
 type Props = {
@@ -14,27 +13,29 @@ type Props = {
 
 const PostActions = ({ id, likes, dislikes, retweets, compact, userName }: Props) => {
   const { user: currentUser } = useUser();
-  const { likePost, dislikePost, retweetPost } = usePosts();
-  const [liked, setLiked] = useState(!!localStorage.getItem(`like_${id}`));
-  const [disliked, setDisliked] = useState(!!localStorage.getItem(`dislike_${id}`));
-  const [retweeted, setRetweeted] = useState(!!localStorage.getItem(`retweet_${id}`));
+  const { likePost, dislikePost, retweetPost, userInteractions } = usePosts();
+
+  const liked = !!userInteractions[id]?.liked;
+  const disliked = !!userInteractions[id]?.disliked;
+  const retweeted = !!userInteractions[id]?.retweeted;
+
+  const likesCount = Array.isArray(likes) ? likes.length : (typeof likes === 'number' ? likes : 0);
+  const dislikesCount = Array.isArray(dislikes) ? dislikes.length : (typeof dislikes === 'number' ? dislikes : 0);
+  const retweetsCount = Array.isArray(retweets) ? retweets.length : (typeof retweets === 'number' ? retweets : 0);
 
   const handleLike = () => {
     if (!liked) {
       likePost(id);
-      setLiked(true);
     }
   };
   const handleDislike = () => {
     if (!disliked) {
       dislikePost(id);
-      setDisliked(true);
     }
   };
   const handleRetweet = () => {
     if (!retweeted) {
       retweetPost(id);
-      setRetweeted(true);
     }
   };
 
@@ -49,7 +50,7 @@ const PostActions = ({ id, likes, dislikes, retweets, compact, userName }: Props
         title={isOwnTweet ? 'Você não pode curtir seu próprio tweet' : 'Like'}
       >
         <Heart size={compact ? 16 : 20} fill={liked ? 'currentColor' : 'none'} strokeWidth={1.8} />
-        {likes ?? 0}
+        {likesCount}
       </span>
       <span
         className={`hover:text-vscode-accent cursor-pointer transition flex items-center gap-1 ${disliked ? 'text-vscode-accent' : ''} ${isOwnTweet ? 'opacity-50 pointer-events-none' : ''}`}
@@ -57,15 +58,15 @@ const PostActions = ({ id, likes, dislikes, retweets, compact, userName }: Props
         title={isOwnTweet ? 'Você não pode dar dislike no seu próprio tweet' : 'Dislike'}
       >
         <ThumbsDown size={compact ? 16 : 20} fill={disliked ? 'currentColor' : 'none'} strokeWidth={1.8} />
-        {dislikes ?? 0}
+        {dislikesCount}
       </span>
       <span
-        className={`hover:text-vscode-accent cursor-pointer transition flex items-center gap-1 ${retweeted ? 'text-vscode-accent' : ''}`}
-        onClick={handleRetweet}
-        title="Retweet"
+        className={`hover:text-vscode-accent cursor-pointer transition flex items-center gap-1 ${retweeted ? 'text-vscode-accent' : ''} ${isOwnTweet ? 'opacity-50 pointer-events-none' : ''}`}
+        onClick={isOwnTweet ? undefined : handleRetweet}
+        title={isOwnTweet ? 'Você não pode retweetar seu próprio tweet' : 'Retweet'}
       >
         <Repeat2 size={compact ? 16 : 20} strokeWidth={1.8} />
-        {retweets ?? 0}
+        {retweetsCount}
       </span>
     </div>
   );

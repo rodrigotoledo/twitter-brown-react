@@ -20,8 +20,6 @@ const Home = () => {
     if (!user) navigate('/');
   }, [user, navigate]);
 
-  if (!user) return null;
-
   const usernameToFetch = username || user?.username;
   const {
     data: tweetsToShow,
@@ -33,6 +31,8 @@ const Home = () => {
     enabled: !!user && !!usernameToFetch,
     refetchOnWindowFocus: true,
   });
+
+  if (!user) return null;
 
   // Função para buscar tweets pelo username (sempre)
   const fetchTweetsByUsername = async (username: string) => {
@@ -66,7 +66,7 @@ const Home = () => {
             <h1 className='text-lg font-semibold mb-2'>Tweets de @{usernameToFetch}</h1>
             {isCurrentUser && (
               <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
-                <TweetForm onPost={refetch} onError={(err) => alert(err)} />
+                <TweetForm onPost={() => refetch()} onError={(err) => alert(err)} />
               </div>
             )}
             <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4">

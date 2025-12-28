@@ -22,7 +22,6 @@ const TweetForm = ({ onPost, onError }: Props) => {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const queryClient = useQueryClient();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handlePost = async () => {
     if (!text.trim()) return;
@@ -55,8 +54,8 @@ const TweetForm = ({ onPost, onError }: Props) => {
       setText('')
       // Invalida queries para atualizar listas
       queryClient.invalidateQueries({ queryKey: ['latestTweets'] });
-      if (user?.username) {
-        queryClient.invalidateQueries({ queryKey: ['userTweets', user.username] });
+      if (tweet?.userName) {
+        queryClient.invalidateQueries({ queryKey: ['userTweetsByUsername', tweet.userName] });
       }
       // Refetch imediato do latestTweets para garantir atualização do SideBar
       if (refetchLatest) await refetchLatest();
