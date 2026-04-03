@@ -12,7 +12,7 @@ const ForgotPassword = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError("Informe seu e-mail.");
+      setError("Please enter your email.");
       setMessage("");
       return;
     }
@@ -20,13 +20,13 @@ const ForgotPassword = () => {
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     const user = users.find((u: any) => u.email === email);
     if (!user) {
-      setError("E-mail não encontrado.");
+      setError("Email not found.");
       setMessage("");
       return;
     }
     setError("");
     setMessage(
-      "Se este e-mail estiver cadastrado, você receberá instruções para redefinir sua senha. (Simulação)",
+      "If this email is registered, you will receive instructions to reset your password. (Simulation)",
     );
   };
 
@@ -35,14 +35,14 @@ const ForgotPassword = () => {
       <div className="flex justify-center items-center min-h-screen">
         <form
           onSubmit={handleSubmit}
-          className="bg-vscode-sidebar p-8 rounded shadow-lg border border-vscode-border w-full max-w-md flex flex-col gap-4"
+          className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-vscode-border bg-vscode-sidebar p-8 shadow-xl shadow-black/40"
         >
           <h2 className="text-xl font-bold text-vscode-text mb-2 flex items-center gap-2">
-            <KeyRound size={22} /> Esqueci a senha
+            <KeyRound size={22} /> Forgot password
           </h2>
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-vscode-text-muted">E-mail</label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <label className="text-sm text-vscode-text-muted">Email</label>
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <Mail size={16} />
               <input
                 name="email"
@@ -50,26 +50,31 @@ const ForgotPassword = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-transparent flex-1 p-2 outline-none"
-                placeholder="Digite seu e-mail"
+                placeholder="Enter your email"
               />
             </div>
           </div>
-          {error && <div className="text-red-500 text-sm">{error}</div>}
-          {message && <div className="text-green-500 text-sm">{message}</div>}
+          {error && (
+            <div className="text-sm text-red-400" role="alert">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div className="text-sm text-vscode-accent">{message}</div>
+          )}
           <button
             type="submit"
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow mt-2 text-center"
+            className="mt-2 flex items-center justify-center gap-2 rounded-full bg-vscode-accent px-4 py-2.5 text-center text-sm font-bold text-vscode-accent-ink transition hover:bg-vscode-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/50"
           >
-            <span className="flex items-center gap-2 mx-auto">
-              <KeyRound size={18} /> Enviar instruções
-            </span>
+            <KeyRound size={18} aria-hidden />
+            Send instructions
           </button>
           <button
             type="button"
-            className="flex items-center justify-center text-xs text-vscode-accent mt-1 underline text-center"
+            className="mt-1 text-center text-xs text-vscode-text-muted underline decoration-vscode-border underline-offset-2 transition hover:text-vscode-accent"
             onClick={() => navigate("/")}
           >
-            Voltar para login
+            Back to login
           </button>
         </form>
       </div>

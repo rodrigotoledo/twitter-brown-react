@@ -1,14 +1,17 @@
-import { useUser } from "../context/UserContext";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import TopBar from "../components/TopBar";
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import SideBar from "../components/SideBar";
-import TweetForm from "../components/TweetForm";
+import TopBar from "../components/TopBar";
 import TweetCard from "../components/TweetCard";
+import TweetForm from "../components/TweetForm";
+import { useUser } from "../context/UserContext";
 
-import type { Post as Tweet } from "../context/PostsContext";
 import MatrixLayout from "../components/MatrixLayout";
+import PageHeading from "../components/PageHeading";
+import type { Post as Tweet } from "../context/PostsContext";
+import { API_URL } from "../lib/api";
+import { feedQueryOptions } from "../lib/queryDefaults";
 
 const Home = () => {
   const { user } = useUser();
@@ -29,23 +32,22 @@ const Home = () => {
     queryKey: ["tweetsForHome", usernameToFetch],
     queryFn: () => fetchTweetsByUsername(usernameToFetch!),
     enabled: !!user && !!usernameToFetch,
-    refetchOnWindowFocus: true,
+    ...feedQueryOptions,
   });
 
   if (!user) return null;
 
   // Função para buscar tweets pelo username (sempre)
   const fetchTweetsByUsername = async (username: string) => {
-    const apiUrl = import.meta.env.VITE_API_URL || "";
     const token = localStorage.getItem("token");
     const headers = {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-    const res = await fetch(`${apiUrl}/tweets/username/${username}`, {
+    const res = await fetch(`${API_URL}/tweets/username/${username}`, {
       headers,
     });
-    if (!res.ok) throw new Error("Erro ao buscar tweets do usuário");
+    if (!res.ok) throw new Error("Error fetching user tweets");
     const data = await res.json();
     return (Array.isArray(data) ? data : data.tweets || []).map(
       (item: {
@@ -78,29 +80,32 @@ const Home = () => {
 
   return (
     <MatrixLayout>
-      <div className="flex flex-col h-screen w-full text-vscode-text">
-        <div className="sticky top-0 z-20 bg-vscode-sidebar px-6 py-3 shadow-lg border-b border-vscode-border flex justify-between items-center">
-          <TopBar />
-        </div>
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <div className="h-40 overflow-y-auto border-b border-vscode-border md:h-full md:w-1/3 lg:w-1/4 md:border-b-0 md:border-r">
-            <SideBar />
+      <div className="flex h-screen w-full flex-col text-vscode-text">
+        <div className="sticky top-0 z-30 border-b border-vscode-border bg-vscode-sidebar/90 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md">
+          <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
+            <TopBar />
           </div>
-          <div className="flex-1 flex flex-col md:h-full min-h-0 overflow-hidden p-4">
-            <h1 className="text-lg font-semibold mb-2">
-              Tweets de @{usernameToFetch}
-            </h1>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+          <aside className="h-44 min-h-0 shrink-0 overflow-y-auto border-b border-vscode-border bg-vscode-sidebar/90 shadow-[inset_-1px_0_0_rgba(92,255,137,0.1)] backdrop-blur-sm md:h-full md:w-[min(100%,20rem)] md:border-b-0 md:border-r lg:w-80">
+            <SideBar />
+          </aside>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-4 sm:px-6 md:h-full">
+            <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col">
+            {usernameToFetch ? (
+              <PageHeading username={usernameToFetch} />
+            ) : null}
             {isCurrentUser && (
-              <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
+              <div className="sticky top-0 z-10 mb-4 rounded-2xl border border-vscode-border bg-vscode-sidebar/95 px-4 py-3 shadow-[0_0_24px_rgba(0,0,0,0.35),0_0_1px_rgba(92,255,137,0.2)] backdrop-blur-sm">
                 <TweetForm
                   onPost={() => refetch()}
                   onError={(err) => alert(err)}
                 />
               </div>
             )}
-            <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-2">
               {loadingTweets && (
-                <p className="text-vscode-text-muted">Carregando tweets...</p>
+                <p className="text-vscode-text-muted">Loading tweets...</p>
               )}
               {Array.isArray(tweetsToShow) && tweetsToShow.length > 0
                 ? tweetsToShow.map((tweet: Tweet) => (
@@ -120,10 +125,11 @@ const Home = () => {
                     />
                   ))
                 : !loadingTweets && (
-                    <p className="text-vscode-text-muted">
-                      Nenhum tweet encontrado.
+                    <p className="rounded-xl border border-vscode-border bg-vscode-sidebar px-4 py-3 text-vscode-text-muted">
+                      No tweets found.
                     </p>
                   )}
+            </div>
             </div>
           </div>
         </div>

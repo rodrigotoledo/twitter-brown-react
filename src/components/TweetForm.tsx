@@ -1,7 +1,8 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePosts } from "../context/usePosts";
 import { Send } from "lucide-react";
+import { useState } from "react";
+import { API_URL } from "../lib/api";
+import { usePosts } from "../context/usePosts";
 
 type Tweet = {
   id: string;
@@ -26,19 +27,18 @@ const TweetForm = ({ onPost, onError }: Props) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      const res = await fetch(`${apiUrl}/tweets`, {
+      const res = await fetch(`${API_URL}/tweets`, {
         method: "POST",
         headers,
         body: JSON.stringify({ content: text.trim() }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Erro ao postar tweet");
+        throw new Error(err.message || "Error posting tweet");
       }
       const data = await res.json();
       // API simplificada retorna dados diretos
@@ -82,7 +82,7 @@ const TweetForm = ({ onPost, onError }: Props) => {
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full p-3 bg-vscode-input text-vscode-text rounded outline-none border border-vscode-border focus:border-vscode-border placeholder-vscode-text-muted"
+        className="w-full rounded-xl border border-vscode-border bg-vscode-input px-4 py-3 text-vscode-text outline-none placeholder-vscode-text-muted focus:border-vscode-accent focus:ring-1 focus:ring-vscode-accent/30"
         placeholder="What's happening?"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -93,12 +93,12 @@ const TweetForm = ({ onPost, onError }: Props) => {
       />
       <button
         onClick={handlePost}
-        className="flex items-center gap-1 px-5 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow w-fit disabled:opacity-60"
-        title="Postar tweet"
+        className="inline-flex items-center gap-2 rounded-full bg-vscode-accent px-5 py-2 text-sm font-bold text-vscode-accent-ink transition hover:bg-vscode-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/50 disabled:opacity-60"
+        title="Post tweet"
         disabled={loading}
       >
-        <Send size={18} />
-        {loading ? "Postando..." : "Postar"}
+        <Send size={18} aria-hidden />
+        {loading ? "Posting..." : "Post"}
       </button>
     </div>
   );

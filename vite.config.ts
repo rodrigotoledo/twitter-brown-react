@@ -8,8 +8,8 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), viteTsconfigPaths(), tailwindcss()],
   server: {
+    host: true,
     port: 3000,
-    open: true,
   },
   build: {
     outDir: "build",

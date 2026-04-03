@@ -32,7 +32,7 @@ const CommentForm = ({ onAdd, user }: Props) => {
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="flex-1 p-2 rounded bg-vscode-input text-vscode-text border border-vscode-border focus:border-vscode-border placeholder-vscode-text-muted outline-none"
+        className="flex-1 rounded-xl border border-vscode-border bg-vscode-input p-2 text-vscode-text outline-none placeholder-vscode-text-muted focus:border-vscode-accent focus:ring-1 focus:ring-vscode-accent/30"
         placeholder="Add a comment..."
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -44,11 +44,11 @@ const CommentForm = ({ onAdd, user }: Props) => {
       <button
         type="button"
         onClick={handleAdd}
-        className="flex items-center gap-1 px-3 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow"
-        title="Enviar comentário"
+        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-vscode-accent px-3 py-2 text-sm font-bold text-vscode-accent-ink transition hover:bg-vscode-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/50"
+        title="Send comment"
       >
         <Send size={18} />
-        Comentar
+        Comment
       </button>
     </div>
   );

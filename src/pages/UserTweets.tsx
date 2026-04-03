@@ -1,19 +1,21 @@
-import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useUser } from "../context/UserContext";
+import { useParams } from "react-router-dom";
+import MatrixLayout from "../components/MatrixLayout";
+import PageHeading from "../components/PageHeading";
 import TweetCard from "../components/TweetCard";
 import TweetForm from "../components/TweetForm";
-import MatrixLayout from "../components/MatrixLayout";
+import { useUser } from "../context/UserContext";
+import { API_URL } from "../lib/api";
+import { feedQueryOptions } from "../lib/queryDefaults";
 
 const fetchUserTweets = async (username: string) => {
-  const apiUrl = import.meta.env.VITE_API_URL || "";
   const token = localStorage.getItem("token");
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  const res = await fetch(`${apiUrl}/tweets/username/${username}`, { headers });
-  if (!res.ok) throw new Error("Erro ao buscar tweets do usuário");
+  const res = await fetch(`${API_URL}/tweets/username/${username}`, { headers });
+  if (!res.ok) throw new Error("Error fetching user tweets");
   const data = await res.json();
   return Array.isArray(data) ? data : data.tweets || [];
 };
@@ -30,27 +32,26 @@ const UserTweets = () => {
   } = useQuery({
     queryKey: ["userTweetsByUsername", username],
     queryFn: () => fetchUserTweets(username!),
-    refetchOnWindowFocus: true,
+    ...feedQueryOptions,
   });
 
   return (
     <MatrixLayout>
-      <div className="flex flex-col h-screen w-full text-vscode-text">
-        <div className="sticky top-0 z-20 bg-vscode-sidebar px-6 py-3 shadow-lg border-b border-vscode-border flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Tweets de @{username}</h2>
-        </div>
-        <div className="flex-1 flex flex-col md:h-full min-h-0 overflow-hidden p-4">
+      <div className="flex h-screen w-full flex-col text-vscode-text">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 pt-5 sm:px-6 md:h-full">
+          <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col">
+          {username ? <PageHeading username={username} /> : null}
           {isCurrentUser && (
-            <div className="bg-vscode-sidebar px-4 py-3 shadow-md z-10 mb-4 rounded border border-vscode-border sticky top-0">
+            <div className="sticky top-0 z-10 mb-4 rounded-2xl border border-vscode-border bg-vscode-sidebar/95 px-4 py-3 shadow-[0_0_24px_rgba(0,0,0,0.35),0_0_1px_rgba(92,255,137,0.2)] backdrop-blur-sm">
               <TweetForm
                 onPost={() => refetch()}
                 onError={(err) => alert(err)}
               />
             </div>
           )}
-          <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-2">
             {isLoading && (
-              <p className="text-vscode-text-muted">Carregando tweets...</p>
+              <p className="text-vscode-text-muted">Loading tweets...</p>
             )}
             {tweets &&
               tweets.map((tweet: any) => (
@@ -69,6 +70,7 @@ const UserTweets = () => {
                   comments={tweet.comments}
                 />
               ))}
+          </div>
           </div>
         </div>
       </div>

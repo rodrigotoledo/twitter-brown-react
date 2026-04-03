@@ -8,7 +8,20 @@ import { BrowserRouter } from "react-router-dom";
 
 import { UserProvider } from "./context/UserContext";
 import { PostsProvider } from "./context/PostsContext";
-const queryClient = new QueryClient();
+import { FEED_STALE_TIME_MS } from "./lib/queryDefaults";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: FEED_STALE_TIME_MS,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchInterval: false,
+      retry: 1,
+    },
+  },
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,

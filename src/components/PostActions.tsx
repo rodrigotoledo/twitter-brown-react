@@ -79,9 +79,9 @@ const PostActions = ({
   return (
     <div className={`flex mt-3 ${base} text-vscode-text-muted items-center`}>
       <span
-        className={`${showComments && !isOwnTweet ? "hover:text-vscode-accent cursor-pointer" : ""} transition flex items-center gap-1 ${isOwnTweet ? "opacity-50 pointer-events-none" : ""}`}
-        onClick={showComments && !isOwnTweet ? handleComment : undefined}
-        title={showComments ? (isOwnTweet ? "Você não pode comentar seu próprio tweet" : "Comentar") : undefined}
+        className={`${showComments ? "hover:text-vscode-accent cursor-pointer" : ""} transition flex items-center gap-1`}
+        onClick={showComments ? handleComment : undefined}
+        title={showComments ? (isOwnTweet ? "View comments" : "Comment") : undefined}
       >
         <MessageCircle size={compact ? 16 : 20} strokeWidth={1.8} />
         {commentsCount}
@@ -89,7 +89,7 @@ const PostActions = ({
       <span
         className={`hover:text-vscode-accent cursor-pointer transition flex items-center gap-1 ${liked ? "text-vscode-accent" : ""} ${isOwnTweet ? "opacity-50 pointer-events-none" : ""}`}
         onClick={isOwnTweet ? undefined : handleLike}
-        title={isOwnTweet ? "Você não pode curtir seu próprio tweet" : "Like"}
+        title={isOwnTweet ? "You cannot like your own tweet" : "Like"}
       >
         <Heart
           size={compact ? 16 : 20}
@@ -103,7 +103,7 @@ const PostActions = ({
         onClick={isOwnTweet ? undefined : handleDislike}
         title={
           isOwnTweet
-            ? "Você não pode dar dislike no seu próprio tweet"
+            ? "You cannot dislike your own tweet"
             : "Dislike"
         }
       >
@@ -118,7 +118,7 @@ const PostActions = ({
         className={`hover:text-vscode-accent cursor-pointer transition flex items-center gap-1 ${retweeted ? "text-vscode-accent" : ""} ${isOwnTweet ? "opacity-50 pointer-events-none" : ""}`}
         onClick={isOwnTweet ? undefined : handleRetweet}
         title={
-          isOwnTweet ? "Você não pode retweetar seu próprio tweet" : "Retweet"
+          isOwnTweet ? "You cannot retweet your own tweet" : "Retweet"
         }
       >
         <Repeat2 size={compact ? 16 : 20} strokeWidth={1.8} />

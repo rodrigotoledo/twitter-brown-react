@@ -10,7 +10,7 @@ const SideBar = () => {
 
   // Debug: veja o que está vindo do backend
   return (
-    <div className="w-full p-4 md:border-r border-vscode-border overflow-y-auto bg-vscode-sidebar sidebar-scroll">
+    <div className="sidebar-scroll h-full w-full overflow-y-auto p-4">
       <h2 className="text-xl font-semibold mb-4 text-vscode-text">
         Latest Tweets
       </h2>

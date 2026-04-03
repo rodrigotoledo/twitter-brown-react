@@ -8,7 +8,7 @@ const TopBar = () => {
   if (!user) return null;
 
   return (
-    <header className="w-full flex justify-between items-center px-6 py-3 bg-vscode-sidebar sticky top-0 z-20">
+    <header className="flex w-full max-w-7xl items-center justify-between gap-4">
       <div>
         <h1 className="text-lg font-semibold text-vscode-text">{user.name}</h1>
         <p className="text-sm text-vscode-text-muted">@{user.username}</p>
@@ -16,14 +16,14 @@ const TopBar = () => {
       <div className="flex items-center gap-3">
         <Link
           to="/"
-          className="text-vscode-accent underline text-sm hover:text-vscode-text transition"
-          title="Ir para tela inicial"
+          className="text-vscode-accent text-sm underline transition hover:text-vscode-accent-hover"
+          title="Go to home"
         >
-          Início
+          Home
         </Link>
         <button
           onClick={logout}
-          className="flex items-center gap-2 px-4 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow"
+          className="flex items-center gap-2 rounded-full border border-vscode-border bg-transparent px-4 py-2 text-sm font-semibold text-vscode-text transition hover:bg-vscode-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/50"
           title="Logout"
         >
           <LogOut size={18} />

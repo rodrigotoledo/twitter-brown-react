@@ -1,5 +1,7 @@
-import { createContext, ReactNode, useEffect, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContext, ReactNode, useEffect, useRef, useState } from "react";
+import { API_URL } from "../lib/api";
+import { feedQueryOptions } from "../lib/queryDefaults";
 import { useUser } from "./UserContext";
 
 // Types
@@ -67,6 +69,30 @@ export const PostsContext = createContext<PostsContextType | undefined>(
 export const PostsProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const { user } = useUser();
+
+  const updateTweetAcrossCaches = (
+    tweetId: string,
+    updater: (post: Post) => Post,
+  ) => {
+    const applyUpdate = (posts?: Post[]) => {
+      if (!posts) return posts;
+      return posts.map((post) =>
+        String(post.id) === tweetId ? updater(post) : post,
+      );
+    };
+
+    const feedPrefixes = [
+      "latestTweets",
+      "tweetsForHome",
+      "userTweetsByUsername",
+    ] as const;
+    for (const prefix of feedPrefixes) {
+      queryClient.setQueriesData<Post[]>(
+        { predicate: (q) => q.queryKey[0] === prefix },
+        applyUpdate,
+      );
+    }
+  };
   
   const getUserInteractionsKey = (username?: string) => 
     username ? `userInteractions_${username}` : "userInteractions";
@@ -131,12 +157,11 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
   } = useQuery<Post[]>({
     queryKey: ["latestTweets"],
     queryFn: async () => {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      const res = await fetch(`${apiUrl}/tweets/latest`, { headers });
+      const res = await fetch(`${API_URL}/tweets/latest`, { headers });
       if (!res.ok) throw new Error("Erro ao buscar latest tweets");
       const data = await res.json();
       const arr = Array.isArray(data) ? data : data.tweets || [];
@@ -158,8 +183,7 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       }));
     },
     enabled: !!token,
-    refetchInterval: 5000,
-    refetchOnWindowFocus: true,
+    ...feedQueryOptions,
   });
 
   const likePost = async (id: string) => {
@@ -173,16 +197,13 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(updatedInteractions));
     }
     const idStr = String(id);
-    // Otimista: incrementa apenas na latestTweets
-    queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-      old?.map((p) =>
-        String(p.id) === idStr ? { ...p, likes: (p.likes ?? 0) + 1 } : p,
-      ),
-    );
+    updateTweetAcrossCaches(idStr, (post) => ({
+      ...post,
+      likes: (post.likes ?? 0) + 1,
+    }));
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const token = localStorage.getItem("token");
-      const res = await fetch(`${apiUrl}/tweets/${id}/like`, {
+      const res = await fetch(`${API_URL}/tweets/${id}/like`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -213,13 +234,10 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         if (user?.username) {
           localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
         }
-        queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-          old?.map((p) =>
-            String(p.id) === idStr
-              ? { ...p, likes: Math.max(0, (p.likes ?? 0) - 1) }
-              : p,
-          ),
-        );
+        updateTweetAcrossCaches(idStr, (post) => ({
+          ...post,
+          likes: Math.max(0, (post.likes ?? 0) - 1),
+        }));
       }
     } catch {
       // Reverte se erro
@@ -231,13 +249,10 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       if (user?.username) {
         localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
       }
-      queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-        old?.map((p) =>
-          String(p.id) === idStr
-            ? { ...p, likes: Math.max(0, (p.likes ?? 0) - 1) }
-            : p,
-        ),
-      );
+      updateTweetAcrossCaches(idStr, (post) => ({
+        ...post,
+        likes: Math.max(0, (post.likes ?? 0) - 1),
+      }));
     }
   };
   const dislikePost = async (id: string) => {
@@ -251,16 +266,13 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(updatedInteractions));
     }
     const idStr = String(id);
-    // Otimista: incrementa apenas na latestTweets
-    queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-      old?.map((p) =>
-        String(p.id) === idStr ? { ...p, dislikes: (p.dislikes ?? 0) + 1 } : p,
-      ),
-    );
+    updateTweetAcrossCaches(idStr, (post) => ({
+      ...post,
+      dislikes: (post.dislikes ?? 0) + 1,
+    }));
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const token = localStorage.getItem("token");
-      const res = await fetch(`${apiUrl}/tweets/${id}/dislike`, {
+      const res = await fetch(`${API_URL}/tweets/${id}/dislike`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -291,13 +303,10 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         if (user?.username) {
           localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
         }
-        queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-          old?.map((p) =>
-            String(p.id) === idStr
-              ? { ...p, dislikes: Math.max(0, (p.dislikes ?? 0) - 1) }
-              : p,
-          ),
-        );
+        updateTweetAcrossCaches(idStr, (post) => ({
+          ...post,
+          dislikes: Math.max(0, (post.dislikes ?? 0) - 1),
+        }));
       }
     } catch {
       // Reverte se erro
@@ -309,13 +318,10 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       if (user?.username) {
         localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
       }
-      queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-        old?.map((p) =>
-          String(p.id) === idStr
-            ? { ...p, dislikes: Math.max(0, (p.dislikes ?? 0) - 1) }
-            : p,
-        ),
-      );
+      updateTweetAcrossCaches(idStr, (post) => ({
+        ...post,
+        dislikes: Math.max(0, (post.dislikes ?? 0) - 1),
+      }));
     }
   };
   const retweetPost = async (id: string) => {
@@ -329,16 +335,13 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(updatedInteractions));
     }
     const idStr = String(id);
-    // Otimista: incrementa apenas na latestTweets
-    queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-      old?.map((p) =>
-        String(p.id) === idStr ? { ...p, retweets: (p.retweets ?? 0) + 1 } : p,
-      ),
-    );
+    updateTweetAcrossCaches(idStr, (post) => ({
+      ...post,
+      retweets: (post.retweets ?? 0) + 1,
+    }));
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const token = localStorage.getItem("token");
-      const res = await fetch(`${apiUrl}/tweets/${id}/retweet`, {
+      const res = await fetch(`${API_URL}/tweets/${id}/retweet`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -369,13 +372,10 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         if (user?.username) {
           localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
         }
-        queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-          old?.map((p) =>
-            String(p.id) === idStr
-              ? { ...p, retweets: Math.max(0, (p.retweets ?? 0) - 1) }
-              : p,
-          ),
-        );
+        updateTweetAcrossCaches(idStr, (post) => ({
+          ...post,
+          retweets: Math.max(0, (post.retweets ?? 0) - 1),
+        }));
       }
     } catch {
       // Reverte se erro
@@ -387,26 +387,17 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       if (user?.username) {
         localStorage.setItem(getUserInteractionsKey(user.username), JSON.stringify(revertedInteractions));
       }
-      queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-        old?.map((p) =>
-          String(p.id) === idStr
-            ? { ...p, retweets: Math.max(0, (p.retweets ?? 0) - 1) }
-            : p,
-        ),
-      );
+      updateTweetAcrossCaches(idStr, (post) => ({
+        ...post,
+        retweets: Math.max(0, (post.retweets ?? 0) - 1),
+      }));
     }
   };
   const addComment = async (id: string, comment: Comment) => {
-    // Verifica se o tweet é do próprio usuário
     const tweet = queryClient
       .getQueryData<Post[]>(["latestTweets"])
       ?.find((p) => String(p.id) === id);
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-
-    if (tweet?.userName === currentUser.username) {
-      // Não permite comentar no próprio tweet
-      return;
-    }
 
     // Atualização otimista: adiciona comentário localmente
     const optimisticComment = {
@@ -422,18 +413,14 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // Atualiza cache otimisticamente
-    queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-      old?.map((p) =>
-        String(p.id) === id
-          ? { ...p, comments: [...(p.comments ?? []), optimisticComment] }
-          : p,
-      ),
-    );
+    updateTweetAcrossCaches(String(id), (post) => ({
+      ...post,
+      comments: [...(post.comments ?? []), optimisticComment],
+    }));
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
       const token = localStorage.getItem("token");
-      const res = await fetch(`${apiUrl}/tweets/${id}/comment`, {
+      const res = await fetch(`${API_URL}/tweets/${id}/comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -443,11 +430,26 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (res.ok) {
-        // Sucesso: invalida queries para buscar dados reais do servidor
-        queryClient.invalidateQueries({ queryKey: ["latestTweets"] });
+        const saved = (await res.json()) as {
+          id: number;
+          content: string;
+          user?: { username?: string };
+        };
+        const mapped: Comment = {
+          id: String(saved.id),
+          user: saved.user?.username ?? currentUser.username ?? "anonymous",
+          content: saved.content,
+        };
+        // Replace optimistic row with server comment (keeps sidebar + caches in sync)
+        updateTweetAcrossCaches(String(id), (post) => ({
+          ...post,
+          comments: [
+            ...(post.comments ?? []).filter((c) => c.id !== optimisticComment.id),
+            mapped,
+          ],
+        }));
+        // Do not invalidate latestTweets here — refetch can race and drop the new comment count in the sidebar.
         queryClient.invalidateQueries({ queryKey: ["tweetsForHome"] });
-
-        // Invalida a query específica do usuário que postou o tweet
         if (tweet?.userName) {
           queryClient.invalidateQueries({
             queryKey: ["userTweetsByUsername", tweet.userName],
@@ -455,35 +457,23 @@ export const PostsProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         // Erro: reverte atualização otimista
-        queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-          old?.map((p) =>
-            String(p.id) === id
-              ? {
-                  ...p,
-                  comments: (p.comments ?? []).filter(
-                    (c) => c.id !== optimisticComment.id,
-                  ),
-                }
-              : p,
+        updateTweetAcrossCaches(String(id), (post) => ({
+          ...post,
+          comments: (post.comments ?? []).filter(
+            (c) => c.id !== optimisticComment.id,
           ),
-        );
+        }));
 
         // Poderia mostrar mensagem de erro para o usuário
       }
     } catch {
       // Erro de rede: reverte atualização otimista
-      queryClient.setQueryData<Post[]>(["latestTweets"], (old) =>
-        old?.map((p) =>
-          String(p.id) === id
-            ? {
-                ...p,
-                comments: (p.comments ?? []).filter(
-                  (c) => c.id !== optimisticComment.id,
-                ),
-              }
-            : p,
+      updateTweetAcrossCaches(String(id), (post) => ({
+        ...post,
+        comments: (post.comments ?? []).filter(
+          (c) => c.id !== optimisticComment.id,
         ),
-      );
+      }));
     }
   };
 

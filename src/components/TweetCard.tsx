@@ -50,8 +50,8 @@ const TweetCard = ({
   // Tema baseado na prop
   const cardClasses =
     theme === "sidebar"
-      ? "mb-3 bg-vscode-input p-3 rounded border border-vscode-border hover:bg-vscode-hover transition hover:shadow-lg hover:-translate-y-1 will-change-transform will-change-shadow will-change-bg"
-      : "bg-vscode-sidebar p-4 rounded shadow-lg border border-vscode-border hover:border-vscode-accent transition flex flex-col mb-4 hover:shadow-2xl hover:-translate-y-1 will-change-transform will-change-shadow will-change-border-color";
+      ? "mb-3 rounded-xl border border-vscode-border bg-vscode-input/95 p-3 transition hover:bg-vscode-hover hover:shadow-[0_0_20px_rgba(92,255,137,0.08)]"
+      : "mb-4 flex flex-col rounded-2xl border border-vscode-border bg-vscode-sidebar/95 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.35)] transition hover:border-vscode-accent/50 hover:shadow-[0_0_28px_rgba(92,255,137,0.12)]";
 
   return (
     <div className={cardClasses}>
@@ -80,8 +80,8 @@ const TweetCard = ({
       <p
         className={
           theme === "sidebar"
-            ? "text-sm text-vscode-text mt-1 truncate max-w-full block overflow-hidden text-ellipsis whitespace-nowrap"
-            : "text-sm text-vscode-text mt-2"
+            ? "mt-1 block max-w-full truncate overflow-hidden text-ellipsis whitespace-nowrap text-sm text-vscode-text"
+            : "mt-2 text-[15px] leading-relaxed text-vscode-text"
         }
         title={typeof content === "string" ? content : JSON.stringify(content)}
       >

@@ -1,9 +1,10 @@
+import { faker } from "@faker-js/faker";
+import { Eye, EyeOff, KeyRound, Mail, User as UserIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, User as UserIcon, KeyRound, Eye, EyeOff } from "lucide-react";
-import { faker } from "@faker-js/faker";
-import { useUser } from "../context/UserContext";
 import MatrixLayout from "../components/MatrixLayout";
+import { useUser } from "../context/UserContext";
+import { API_URL } from "../lib/api";
 
 const Signup = () => {
   const { login } = useUser();
@@ -34,16 +35,15 @@ const Signup = () => {
       !form.password ||
       !form.confirmPassword
     ) {
-      setError("Preencha todos os campos.");
+      setError("Please fill in all fields.");
       return;
     }
     if (form.password !== form.confirmPassword) {
-      setError("As senhas não coincidem.");
+      setError("Passwords do not match.");
       return;
     }
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "";
-      const res = await fetch(`${apiUrl}/auth/register`, {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,7 +56,7 @@ const Signup = () => {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.message || "Erro ao registrar.");
+        setError(data.message || "Registration error.");
         return;
       }
       // Sucesso: loga automaticamente
@@ -71,7 +71,7 @@ const Signup = () => {
         email: data.email || form.email,
       });
     } catch {
-      setError("Erro de conexão com o servidor.");
+      setError("Connection error. Please try again.");
     }
   };
 
@@ -91,14 +91,14 @@ const Signup = () => {
       <div className="flex justify-center items-center min-h-screen">
         <form
           onSubmit={handleSubmit}
-          className="bg-vscode-sidebar p-8 rounded shadow-lg border border-vscode-border w-full max-w-md flex flex-col gap-4"
+          className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-vscode-border bg-vscode-sidebar p-8 shadow-xl shadow-black/40"
         >
           <h2 className="text-xl font-bold text-vscode-text mb-2 flex items-center gap-2">
-            <UserIcon size={22} /> Criar conta
+            <UserIcon size={22} /> Create account
           </h2>
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-vscode-text-muted">Nome</label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <label className="text-sm text-vscode-text-muted">Name</label>
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <UserIcon size={16} />
               <input
                 name="name"
@@ -106,14 +106,14 @@ const Signup = () => {
                 onChange={handleChange}
                 className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
                 autoComplete="name"
-                placeholder="Nome completo"
-                title="Nome completo"
+                placeholder="Full name"
+                title="Full name"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm text-vscode-text-muted">Username</label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <UserIcon size={16} />
               <input
                 name="username"
@@ -121,14 +121,14 @@ const Signup = () => {
                 onChange={handleChange}
                 className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
                 autoComplete="username"
-                placeholder="Seu usuário"
-                title="Seu usuário"
+                placeholder="Your username"
+                title="Your username"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm text-vscode-text-muted">Email</label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <Mail size={16} />
               <input
                 name="email"
@@ -137,14 +137,14 @@ const Signup = () => {
                 onChange={handleChange}
                 className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
                 autoComplete="email"
-                placeholder="Seu e-mail"
-                title="Seu e-mail"
+                placeholder="Your email"
+                title="Your email"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-vscode-text-muted">Senha</label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <label className="text-sm text-vscode-text-muted">Password</label>
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <KeyRound size={16} />
               <input
                 name="password"
@@ -152,8 +152,8 @@ const Signup = () => {
                 value={form.password}
                 onChange={handleChange}
                 className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
-                placeholder="Senha"
-                title="Senha"
+                placeholder="Password"
+                title="Password"
                 autoComplete="new-password"
               />
               <button
@@ -161,7 +161,7 @@ const Signup = () => {
                 className="text-vscode-accent hover:text-vscode-text-muted focus:outline-none"
                 tabIndex={-1}
                 onClick={() => setShowPassword((v) => !v)}
-                title={showPassword ? "Ocultar senha" : "Exibir senha"}
+                title={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -169,9 +169,9 @@ const Signup = () => {
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm text-vscode-text-muted">
-              Confirmar senha
+              Confirm password
             </label>
-            <div className="flex items-center gap-2 bg-vscode-input border border-vscode-border rounded px-2">
+            <div className="flex items-center gap-2 rounded-xl border border-vscode-border bg-vscode-input px-3 py-0.5 transition focus-within:border-vscode-accent focus-within:ring-1 focus-within:ring-vscode-accent/30">
               <KeyRound size={16} />
               <input
                 name="confirmPassword"
@@ -179,8 +179,8 @@ const Signup = () => {
                 value={form.confirmPassword}
                 onChange={handleChange}
                 className="bg-transparent flex-1 p-2 outline-none autofill:bg-vscode-input!"
-                placeholder="Confirme a senha"
-                title="Confirme a senha"
+                placeholder="Confirm password"
+                title="Confirm password"
                 autoComplete="new-password"
               />
               <button
@@ -188,34 +188,37 @@ const Signup = () => {
                 className="text-vscode-accent hover:text-vscode-text-muted focus:outline-none"
                 tabIndex={-1}
                 onClick={() => setShowConfirm((v) => !v)}
-                title={showConfirm ? "Ocultar senha" : "Exibir senha"}
+                title={showConfirm ? "Hide password" : "Show password"}
               >
                 {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {error && (
+            <div className="text-sm text-red-400" role="alert">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded font-semibold text-vscode-text bg-vscode-sidebar border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow mt-2 text-center"
+            className="mt-2 flex items-center justify-center gap-2 rounded-full bg-vscode-accent px-4 py-2.5 text-center text-sm font-bold text-vscode-accent-ink transition hover:bg-vscode-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/50"
           >
-            <span className="flex items-center gap-2 mx-auto">
-              <UserIcon size={18} /> Cadastrar
-            </span>
+            <UserIcon size={18} aria-hidden />
+            Register
           </button>
           <button
             type="button"
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded font-semibold text-vscode-accent border border-vscode-border hover:bg-vscode-hover focus:outline-none focus:border-vscode-border transition shadow mt-2 text-center"
+            className="flex items-center justify-center gap-2 rounded-full border border-vscode-border px-4 py-2 text-center text-sm font-semibold text-vscode-text transition hover:bg-vscode-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-vscode-accent/30"
             onClick={fillWithFake}
           >
-            Preencher com dados fake
+            Fill with fake data
           </button>
           <button
             type="button"
-            className="flex items-center justify-center text-xs text-vscode-accent mt-1 underline text-center"
+            className="mt-1 text-center text-xs text-vscode-text-muted underline decoration-vscode-border underline-offset-2 transition hover:text-vscode-accent"
             onClick={() => navigate("/")}
           >
-            Já tem conta? Entrar
+            Already have an account? Sign in
           </button>
         </form>
       </div>
