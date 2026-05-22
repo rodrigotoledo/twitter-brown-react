@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react'
 import LeftNav from '../components/home/LeftNav'
 import RightSidebar from '../components/home/RightSidebar'
+import MobileTopNav from '../components/home/MobileTopNav'
 import PostComposer from '../components/home/PostComposer'
 import PostCard from '../components/home/PostCard'
 import { generatePosts } from '../utils/generatePosts'
 import { filterPosts, searchPosts } from '../utils/postFilters'
 import { useToast } from '../context/ToastContext'
+import { useUser } from '../context/UserContext'
 import type { Post, PostFilter } from '../types/post'
 
 const initialPosts = generatePosts(50)
 
 const Home = () => {
   const { toast } = useToast()
+  const { user, logout } = useUser()
   const [posts, setPosts] = useState<Post[]>(initialPosts)
   const [activeFilter, setActiveFilter] = useState<PostFilter>('latest50')
   const [searchQuery, setSearchQuery] = useState('')
@@ -21,6 +24,15 @@ const Home = () => {
     const filtered = filterPosts(posts, activeFilter)
     return searchPosts(filtered, appliedSearch)
   }, [posts, activeFilter, appliedSearch])
+
+  const userStats = useMemo(() => {
+    if (!user) return { postCount: 0, likeCount: 0 }
+    const ownPosts = posts.filter((post) => post.author.username === user.username)
+    return {
+      postCount: ownPosts.length,
+      likeCount: ownPosts.reduce((total, post) => total + post.likes, 0),
+    }
+  }, [posts, user])
 
   const updatePost = (id: string, updater: (post: Post) => Post) => {
     setPosts((current) => current.map((p) => (p.id === id ? updater(p) : p)))
@@ -37,7 +49,18 @@ const Home = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-cursor-light text-cursor-foreground">
-      <LeftNav />
+      <LeftNav
+        user={user}
+        postCount={userStats.postCount}
+        likeCount={userStats.likeCount}
+        onLogout={logout}
+      />
+      <MobileTopNav
+        user={user}
+        postCount={userStats.postCount}
+        likeCount={userStats.likeCount}
+        onLogout={logout}
+      />
 
       <RightSidebar
         searchQuery={searchQuery}
@@ -48,12 +71,12 @@ const Home = () => {
       />
 
       {/* Center column: full width between sidebars; only the feed scrolls */}
-      <main className="fixed inset-y-0 left-0 right-0 z-10 flex flex-col bg-cursor-light lg:left-20 xl:left-64 xl:right-80">
+      <main className="fixed bottom-0 left-0 right-0 top-[104px] z-10 flex flex-col bg-cursor-light lg:inset-y-0 lg:left-20 xl:left-64 xl:right-80">
         <div className="shrink-0 border-b border-cursor-border bg-cursor-light">
           <header className="px-4 py-3">
             <h1 className="text-xl font-bold">Home</h1>
           </header>
-          <PostComposer onPost={(post) => setPosts((current) => [post, ...current])} />
+          <PostComposer user={user} onPost={(post) => setPosts((current) => [post, ...current])} />
         </div>
 
         <div className="flex-1 overflow-y-auto">

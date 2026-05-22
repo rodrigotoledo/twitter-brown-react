@@ -25,7 +25,7 @@ const ForgotPassword = () => {
     <AuthLayout>
       <form
         onSubmit={handleSubmit}
-        className="bg-cursor-dark text-cursor-foreground p-8 rounded-2xl shadow-md space-y-5 w-full max-w-sm border border-cursor-border"
+        className="bg-cursor-dark text-cursor-foreground p-8 rounded-2xl shadow-md space-y-5 w-full max-w-xl border border-cursor-border"
       >
         <h1 className="text-3xl font-bold">Forgot password?</h1>
         <p className="text-sm text-cursor-muted">

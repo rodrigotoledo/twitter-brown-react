@@ -3,18 +3,28 @@ import { faker } from '@faker-js/faker'
 import { useToast } from '../../context/ToastContext'
 import { MAX_POST_LENGTH } from '../../constants/post'
 import type { Post } from '../../types/post'
+import type { User } from '../../context/UserContext'
 
 type Props = {
+  user: User | null
   onPost: (post: Post) => void
 }
 
 const inputClass =
   'w-full border border-cursor-border bg-cursor-light text-cursor-foreground p-3 rounded-lg outline-none focus:outline focus:outline-2 focus:outline-cursor-focus resize-none min-h-[48px]'
 
-const PostComposer = ({ onPost }: Props) => {
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+const getAvatarUrl = (avatarUrl?: string) => {
+  if (!avatarUrl) return ''
+  return avatarUrl.startsWith('http') ? avatarUrl : `${apiUrl}${avatarUrl}`
+}
+
+const PostComposer = ({ user, onPost }: Props) => {
   const { toast } = useToast()
   const [text, setText] = useState('')
-  const [avatar] = useState(() => faker.image.avatar())
+  const [fallbackAvatar] = useState(() => faker.image.avatar())
+  const avatar = getAvatarUrl(user?.avatar_url) || fallbackAvatar
 
   const charCount = text.length
   const isNearLimit = charCount >= MAX_POST_LENGTH - 20
@@ -38,9 +48,9 @@ const PostComposer = ({ onPost }: Props) => {
     onPost({
       id: faker.string.uuid(),
       author: {
-        name: faker.person.fullName(),
-        username: faker.internet.username().toLowerCase(),
-        avatar: faker.image.avatar(),
+        name: user?.name || faker.person.fullName(),
+        username: user?.username || faker.internet.username().toLowerCase(),
+        avatar,
       },
       content: text.trim(),
       createdAt: new Date(),
@@ -72,11 +82,17 @@ const PostComposer = ({ onPost }: Props) => {
       </div>
 
       <div className="flex gap-3 items-end">
-        <img
-          src={avatar}
-          alt=""
-          className="w-10 h-10 rounded-full shrink-0 bg-cursor-dark hidden sm:block"
-        />
+        {user?.avatar_url ? (
+          <img
+            src={avatar}
+            alt=""
+            className="h-11 w-11 rounded-full object-cover shrink-0 bg-cursor-dark"
+          />
+        ) : (
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cursor-dark text-base font-bold">
+            {(user?.username || '?').slice(0, 1).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1 flex flex-col sm:flex-row gap-2 sm:items-end min-w-0">
           <textarea
             value={text}

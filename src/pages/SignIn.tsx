@@ -5,27 +5,57 @@ import AuthLayout from '../components/AuthLayout'
 import FormField from '../components/FormField'
 import { useToast } from '../context/ToastContext'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 const SignIn = () => {
   const { login } = useUser()
   const { toast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
       toast.error('Please enter your email and password.')
       return
     }
-    const username = email.split('@')[0] || 'user'
-    login({ name: username, email, username })
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`${API_URL}/api/auth/signin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+      const body = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        toast.error(body?.error?.message || 'Unable to sign in.')
+        return
+      }
+
+      if (!body?.data?.token || !body?.data?.user) {
+        toast.error('Signin response was missing authentication data.')
+        return
+      }
+
+      localStorage.setItem('x_clone_token', body.data.token)
+      login(body.data.user)
+    } catch {
+      toast.error('Unable to sign in right now.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <AuthLayout>
       <form
         onSubmit={handleSubmit}
-        className="bg-cursor-dark text-cursor-foreground p-8 rounded-2xl shadow-md space-y-5 w-full max-w-sm border border-cursor-border"
+        className="bg-cursor-dark text-cursor-foreground p-8 rounded-2xl shadow-md space-y-5 w-full max-w-xl border border-cursor-border"
       >
         <h1 className="text-3xl font-bold">Sign in to X</h1>
 
@@ -58,9 +88,10 @@ const SignIn = () => {
 
         <button
           type="submit"
-          className="bg-cursor-accent text-cursor-on-accent font-bold w-full py-3 rounded-full hover:bg-cursor-accent-hover transition"
+          disabled={isSubmitting}
+          className="bg-cursor-accent text-cursor-on-accent font-bold w-full py-3 rounded-full hover:bg-cursor-accent-hover transition disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Sign in
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
     </AuthLayout>

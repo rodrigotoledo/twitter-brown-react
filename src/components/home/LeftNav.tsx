@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom'
 import NavIcon from './NavIcon'
+import type { User } from '../../context/UserContext'
 
 const iconClass = 'w-6 h-6'
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+type Props = {
+  user: User | null
+  postCount: number
+  likeCount: number
+  onLogout: () => void
+}
 
 const HomeIcon = () => (
   <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -34,7 +43,12 @@ const UserIcon = () => (
   </svg>
 )
 
-const LeftNav = () => (
+const getAvatarUrl = (avatarUrl?: string) => {
+  if (!avatarUrl) return ''
+  return avatarUrl.startsWith('http') ? avatarUrl : `${apiUrl}${avatarUrl}`
+}
+
+const LeftNav = ({ user, postCount, likeCount, onLogout }: Props) => (
   <aside className="hidden lg:flex fixed left-0 top-0 z-20 h-screen flex-col w-20 xl:w-64 px-2 xl:px-4 py-4 border-r border-cursor-border bg-cursor-light">
     <Link to="/home" className="mb-6 px-3" aria-label="Home">
       <svg viewBox="0 0 24 24" className="w-8 h-8 fill-cursor-foreground" aria-hidden>
@@ -60,12 +74,56 @@ const LeftNav = () => (
       </NavIcon>
     </nav>
 
-    <Link
-      to="/signin"
-      className="mt-4 hidden xl:block text-center bg-cursor-accent text-cursor-on-accent font-bold py-3 rounded-full hover:bg-cursor-accent-hover transition"
+    {user && (
+      <section className="mt-4 rounded-lg border border-cursor-border bg-cursor-dark p-2 xl:p-3">
+        <div className="flex flex-col items-center gap-2 xl:flex-row xl:gap-3 min-w-0">
+          {user.avatar_url ? (
+            <img
+              src={getAvatarUrl(user.avatar_url)}
+              alt=""
+              className="h-12 w-12 rounded-full object-cover bg-cursor-light"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cursor-light text-lg font-bold">
+              {user.username.slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className="hidden min-w-0 xl:block">
+            <p className="truncate font-semibold">{user.name}</p>
+            <p className="truncate text-sm text-cursor-muted">@{user.username}</p>
+          </div>
+        </div>
+
+        <p className="mt-2 truncate text-center text-xs font-semibold xl:hidden">
+          @{user.username}
+        </p>
+
+        <dl className="mt-3 grid grid-cols-1 gap-2 text-center text-xs xl:grid-cols-2 xl:text-left xl:text-sm">
+          <div className="rounded bg-cursor-light px-1.5 py-1 xl:bg-transparent xl:p-0">
+            <dt className="text-cursor-muted">Posts</dt>
+            <dd className="font-semibold tabular-nums">{postCount}</dd>
+          </div>
+          <div className="rounded bg-cursor-light px-1.5 py-1 xl:bg-transparent xl:p-0">
+            <dt className="text-cursor-muted">Likes</dt>
+            <dd className="font-semibold tabular-nums">{likeCount}</dd>
+          </div>
+        </dl>
+      </section>
+    )}
+
+    <button
+      type="button"
+      onClick={onLogout}
+      className="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-cursor-accent text-cursor-on-accent font-bold transition hover:bg-cursor-accent-hover xl:h-auto xl:w-full xl:py-3"
+      aria-label="Log out"
     >
-      Sign in
-    </Link>
+      <span className="xl:hidden" aria-hidden>
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H3m8-8l4 4-4 4m4 4l-4 4" />
+        </svg>
+      </span>
+      <span className="hidden xl:inline">Log out</span>
+    </button>
   </aside>
 )
 
