@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from './ToastContext'
 
 type User = {
   name: string
   email: string
   username: string
+  phone?: string
 }
 
 type UserContextType = {
@@ -24,15 +26,18 @@ export const useUser = () => {
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const login = (data: User) => {
     setUser(data)
+    toast.success(`Welcome, @${data.username}!`)
     navigate('/home')
   }
 
   const logout = () => {
     setUser(null)
-    navigate('/')
+    toast.info('You have been logged out.')
+    navigate('/signin')
   }
 
   return (

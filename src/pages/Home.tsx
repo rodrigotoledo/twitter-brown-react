@@ -1,54 +1,96 @@
-import { useUser } from '../context/UserContext'
-import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import TopBar from '../components/TopBar'
-import SideBar from '../components/SideBar'
-import TweetForm from '../components/TweetForm'
-import TweetCard from '../components/TweetCard'
+import { useMemo, useState } from 'react'
+import LeftNav from '../components/home/LeftNav'
+import RightSidebar from '../components/home/RightSidebar'
+import PostComposer from '../components/home/PostComposer'
+import PostCard from '../components/home/PostCard'
+import { generatePosts } from '../utils/generatePosts'
+import { filterPosts, searchPosts } from '../utils/postFilters'
+import { useToast } from '../context/ToastContext'
+import type { Post, PostFilter } from '../types/post'
 
-type Tweet = {
-  id: string
-  user: string
-  content: string
-}
+const initialPosts = generatePosts(50)
 
 const Home = () => {
-  const { user } = useUser()
-  const navigate = useNavigate()
-  const [myTweets, setMyTweets] = useState<Tweet[]>([])
+  const { toast } = useToast()
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const [activeFilter, setActiveFilter] = useState<PostFilter>('latest50')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
 
-  useEffect(() => {
-    if (!user) navigate('/')
-  }, [user, navigate])
+  const visiblePosts = useMemo(() => {
+    const filtered = filterPosts(posts, activeFilter)
+    return searchPosts(filtered, appliedSearch)
+  }, [posts, activeFilter, appliedSearch])
 
-  if (!user) return null
+  const updatePost = (id: string, updater: (post: Post) => Post) => {
+    setPosts((current) => current.map((p) => (p.id === id ? updater(p) : p)))
+  }
+
+  const handleSearch = () => {
+    setAppliedSearch(searchQuery)
+    toast.info(
+      searchQuery.trim()
+        ? `Showing posts matching "${searchQuery.trim()}"`
+        : 'Showing all posts.'
+    )
+  }
 
   return (
-    <div className="h-screen flex flex-col bg-brown-light text-white">
-      <div className="h-20 sticky top-0 z-20 bg-brown px-6 py-4 shadow-lg">
-        <TopBar />
-      </div>
+    <div className="h-screen overflow-hidden bg-cursor-light text-cursor-foreground">
+      <LeftNav />
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        <div className="h-40 overflow-y-auto border-b border-brown-dark md:h-full md:w-1/3 lg:w-1/4 md:border-b-0 md:border-r">
-          <SideBar />
+      <RightSidebar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={handleSearch}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+      />
+
+      {/* Center column: full width between sidebars; only the feed scrolls */}
+      <main className="fixed inset-y-0 left-0 right-0 z-10 flex flex-col bg-cursor-light lg:left-20 xl:left-64 xl:right-80">
+        <div className="shrink-0 border-b border-cursor-border bg-cursor-light">
+          <header className="px-4 py-3">
+            <h1 className="text-xl font-bold">Home</h1>
+          </header>
+          <PostComposer onPost={(post) => setPosts((current) => [post, ...current])} />
         </div>
 
-        <div className="flex-1 flex flex-col md:h-full overflow-hidden p-4">
-          <h1 className='text-lg font-semibold'>My Tweets</h1>
-          <div className="flex-1 overflow-y-auto py-4 space-y-4">
-            {myTweets.map((tweet) => (
-              <TweetCard key={tweet.id} user={tweet.user} content={tweet.content} />
-            ))}
-          </div>
-
-          <div className="bg-brown px-4 py-3 shadow-md z-10 sticky bottom-0 mb-3 rounded">
-            <TweetForm onPost={(tweet) => setMyTweets([tweet, ...myTweets])} />
-          </div>
+        <div className="flex-1 overflow-y-auto">
+          {visiblePosts.length === 0 ? (
+            <p className="px-4 py-8 text-center text-cursor-muted">
+              No posts found for this filter.
+            </p>
+          ) : (
+            visiblePosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={(id) =>
+                  updatePost(id, (p) => ({ ...p, likes: p.likes + 1 }))
+                }
+                onRepost={(id) =>
+                  updatePost(id, (p) => ({ ...p, reposts: p.reposts + 1 }))
+                }
+                onComment={(id) => {
+                  updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }))
+                  toast.info('Comments coming soon.')
+                }}
+                onShare={(id) => {
+                  navigator.clipboard?.writeText(
+                    `${window.location.origin}/home#${id}`
+                  )
+                  toast.success('Post link copied.')
+                }}
+                onFollow={(id) =>
+                  updatePost(id, (p) => ({ ...p, isFollowing: !p.isFollowing }))
+                }
+              />
+            ))
+          )}
         </div>
-      </div>
+      </main>
     </div>
-
   )
 }
 

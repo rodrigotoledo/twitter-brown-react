@@ -1,17 +1,25 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { UserProvider } from './context/UserContext'
-import Login from './pages/Login'
+import { ToastProvider } from './context/ToastContext'
+import SignIn from './pages/SignIn'
+import SignUp from './pages/SignUp'
+import ForgotPassword from './pages/ForgotPassword'
 import Home from './pages/Home'
 
 function App() {
   return (
     <BrowserRouter>
-      <UserProvider>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-        </Routes>
-      </UserProvider>
+      <ToastProvider>
+        <UserProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/home" element={<Home />} />
+          </Routes>
+        </UserProvider>
+      </ToastProvider>
     </BrowserRouter>
   )
 }
