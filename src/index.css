@@ -1,6 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "flowbite/plugin";
+
+@source "../node_modules/flowbite/**/*.js";
+@source "../node_modules/flowbite-react/dist/**/*.js";
+
+@theme {
+  --color-cursor: #262626;
+  --color-cursor-light: #181818;
+  --color-cursor-dark: #141414;
+  --color-cursor-accent: #81A1C1;
+  --color-cursor-accent-hover: #87A6C4;
+  --color-cursor-on-accent: #191c22;
+  --color-cursor-foreground: #E4E4E4EB;
+  --color-cursor-muted: #E4E4E48D;
+  --color-cursor-border: #E4E4E413;
+  --color-cursor-focus: #E4E4E426;
+}
 
 body {
   @apply bg-cursor-light text-cursor-foreground;
