@@ -11,17 +11,21 @@ export type User = {
   bio?: string
   phone?: string
   instagram?: string
+  followers_count?: number
+  following_count?: number
+  posts_count?: number
 }
 
 type UserContextType = {
   user: User | null
   login: (user: User) => void
   logout: () => void
+  refreshUser: () => Promise<User | null>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 const USER_STORAGE_KEY = 'x_clone_user'
-const TOKEN_STORAGE_KEY = 'x_clone_token'
+export const TOKEN_STORAGE_KEY = 'x_clone_token'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const useUser = () => {
@@ -45,29 +49,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  useEffect(() => {
+  const refreshUser = async () => {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-    if (!token) return
+    if (!token) return null
 
-    const refreshCurrentUser = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/users/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        const body = await response.json().catch(() => null)
+    try {
+      const response = await fetch(`${API_URL}/api/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const body = await response.json().catch(() => null)
 
-        if (!response.ok || !body?.data) return
+      if (!response.ok || !body?.data) return null
 
-        setUser(body.data)
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(body.data))
-      } catch {
-        // Keep the locally stored user when the API is temporarily unavailable.
-      }
+      setUser(body.data)
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(body.data))
+      return body.data as User
+    } catch {
+      // Keep the locally stored user when the API is temporarily unavailable.
+      return null
     }
+  }
 
-    refreshCurrentUser()
+  useEffect(() => {
+    void refreshUser()
   }, [])
 
   const login = (data: User) => {
@@ -86,7 +92,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider value={{ user, login, logout, refreshUser }}>
       {children}
     </UserContext.Provider>
   )

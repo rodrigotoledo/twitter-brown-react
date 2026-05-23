@@ -7,6 +7,7 @@ type Props = {
   onSearch: () => void
   activeFilter: PostFilter
   onFilterChange: (filter: PostFilter) => void
+  filterCounts: Record<PostFilter, number>
 }
 
 const inputClass =
@@ -18,6 +19,7 @@ const RightSidebar = ({
   onSearch,
   activeFilter,
   onFilterChange,
+  filterCounts,
 }: Props) => (
   <aside className="hidden xl:block fixed right-0 top-0 z-20 h-screen w-80 px-4 py-4 border-l border-cursor-border bg-cursor-light overflow-y-auto">
     <div className="space-y-4">
@@ -49,13 +51,14 @@ const RightSidebar = ({
               key={value}
               type="button"
               onClick={() => onFilterChange(value)}
-              className={`text-left px-4 py-3 text-sm transition hover:bg-cursor ${
+              className={`flex items-center justify-between gap-3 px-4 py-3 text-left text-sm transition hover:bg-cursor ${
                 activeFilter === value
                   ? 'font-semibold bg-cursor text-cursor-foreground'
                   : 'text-cursor-muted'
               }`}
             >
-              {label}
+              <span>{label}</span>
+              <span className="tabular-nums">{filterCounts[value]}</span>
             </button>
           ))}
         </div>

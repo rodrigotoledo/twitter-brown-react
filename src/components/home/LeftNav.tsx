@@ -107,6 +107,14 @@ const LeftNav = ({ user, postCount, likeCount, onLogout }: Props) => (
             <dt className="text-cursor-muted">Likes</dt>
             <dd className="font-semibold tabular-nums">{likeCount}</dd>
           </div>
+          <div className="rounded bg-cursor-light px-1.5 py-1 xl:bg-transparent xl:p-0">
+            <dt className="text-cursor-muted">Following</dt>
+            <dd className="font-semibold tabular-nums">{user.following_count ?? 0}</dd>
+          </div>
+          <div className="rounded bg-cursor-light px-1.5 py-1 xl:bg-transparent xl:p-0">
+            <dt className="text-cursor-muted">Followers</dt>
+            <dd className="font-semibold tabular-nums">{user.followers_count ?? 0}</dd>
+          </div>
         </dl>
       </section>
     )}

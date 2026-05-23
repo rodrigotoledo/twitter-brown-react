@@ -12,6 +12,9 @@ export type Post = {
   likes: number
   reposts: number
   comments: number
+  likedByMe: boolean
+  repostedByMe: boolean
+  isOwnPost: boolean
   isFollowing: boolean
 }
 

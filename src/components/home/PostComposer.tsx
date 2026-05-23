@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { faker } from '@faker-js/faker'
+import { useRef, useState } from 'react'
 import { useToast } from '../../context/ToastContext'
 import { MAX_POST_LENGTH } from '../../constants/post'
 import type { Post } from '../../types/post'
@@ -7,7 +6,7 @@ import type { User } from '../../context/UserContext'
 
 type Props = {
   user: User
-  onPost: (post: Post) => void
+  onPost: (content: string, idempotencyKey: string) => Promise<Post>
 }
 
 const inputClass =
@@ -20,22 +19,31 @@ const getAvatarUrl = (avatarUrl?: string) => {
   return avatarUrl.startsWith('http') ? avatarUrl : `${apiUrl}${avatarUrl}`
 }
 
+const createIdempotencyKey = () => {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 const PostComposer = ({ user, onPost }: Props) => {
   const { toast } = useToast()
   const [text, setText] = useState('')
-  const [fallbackAvatar] = useState(() => faker.image.avatar())
-  const avatar = getAvatarUrl(user?.avatar_url) || fallbackAvatar
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isSubmittingRef = useRef(false)
+  const idempotencyKeyRef = useRef<string | null>(null)
+  const avatar = getAvatarUrl(user?.avatar_url)
 
   const charCount = text.length
   const isNearLimit = charCount >= MAX_POST_LENGTH - 20
   const isAtLimit = charCount >= MAX_POST_LENGTH
-  const canPost = text.trim().length > 0 && charCount <= MAX_POST_LENGTH
+  const canPost = text.trim().length > 0 && charCount <= MAX_POST_LENGTH && !isSubmitting
 
   const handleChange = (value: string) => {
     setText(value.slice(0, MAX_POST_LENGTH))
+    idempotencyKeyRef.current = null
   }
 
-  const handlePost = () => {
+  const handlePost = async () => {
+    if (isSubmittingRef.current) return
     if (!user) {
       toast.error('Sign in to post.')
       return
@@ -49,22 +57,23 @@ const PostComposer = ({ user, onPost }: Props) => {
       return
     }
 
-    onPost({
-      id: faker.string.uuid(),
-      author: {
-        name: user.name,
-        username: user.username,
-        avatar,
-      },
-      content: text.trim(),
-      createdAt: new Date(),
-      likes: 0,
-      reposts: 0,
-      comments: 0,
-      isFollowing: false,
-    })
-    setText('')
-    toast.success('Your post was published.')
+    const content = text.trim()
+    const idempotencyKey = idempotencyKeyRef.current || createIdempotencyKey()
+    idempotencyKeyRef.current = idempotencyKey
+    isSubmittingRef.current = true
+    setIsSubmitting(true)
+
+    try {
+      await onPost(content, idempotencyKey)
+      setText('')
+      idempotencyKeyRef.current = null
+      toast.success('Your post was published.')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to publish your post.')
+    } finally {
+      isSubmittingRef.current = false
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -108,18 +117,18 @@ const PostComposer = ({ user, onPost }: Props) => {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
-                if (canPost) handlePost()
+                if (canPost) void handlePost()
               }
             }}
             aria-describedby="post-char-count"
           />
           <button
             type="button"
-            onClick={handlePost}
+            onClick={() => void handlePost()}
             disabled={!canPost}
             className="shrink-0 bg-cursor-accent text-cursor-on-accent font-bold px-5 py-2.5 rounded-full hover:bg-cursor-accent-hover transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-cursor-accent"
           >
-            Post
+            {isSubmitting ? 'Posting...' : 'Post'}
           </button>
         </div>
       </div>
