@@ -111,19 +111,34 @@ const LeftNav = ({ user, postCount, likeCount, onLogout }: Props) => (
       </section>
     )}
 
-    <button
-      type="button"
-      onClick={onLogout}
-      className="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-cursor-accent text-cursor-on-accent font-bold transition hover:bg-cursor-accent-hover xl:h-auto xl:w-full xl:py-3"
-      aria-label="Log out"
-    >
-      <span className="xl:hidden" aria-hidden>
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H3m8-8l4 4-4 4m4 4l-4 4" />
-        </svg>
-      </span>
-      <span className="hidden xl:inline">Log out</span>
-    </button>
+    {user ? (
+      <button
+        type="button"
+        onClick={onLogout}
+        className="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-cursor-accent text-cursor-on-accent font-bold transition hover:bg-cursor-accent-hover xl:h-auto xl:w-full xl:py-3"
+        aria-label="Log out"
+      >
+        <span className="xl:hidden" aria-hidden>
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H3m8-8l4 4-4 4m4 4l-4 4" />
+          </svg>
+        </span>
+        <span className="hidden xl:inline">Log out</span>
+      </button>
+    ) : (
+      <Link
+        to="/signin"
+        className="mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-cursor-accent text-cursor-on-accent font-bold transition hover:bg-cursor-accent-hover xl:h-auto xl:w-full xl:py-3"
+        aria-label="Sign in"
+      >
+        <span className="xl:hidden" aria-hidden>
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+          </svg>
+        </span>
+        <span className="hidden xl:inline">Sign in</span>
+      </Link>
+    )}
   </aside>
 )
 

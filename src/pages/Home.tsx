@@ -76,7 +76,12 @@ const Home = () => {
           <header className="px-4 py-3">
             <h1 className="text-xl font-bold">Home</h1>
           </header>
-          <PostComposer user={user} onPost={(post) => setPosts((current) => [post, ...current])} />
+          {user && (
+            <PostComposer
+              user={user}
+              onPost={(post) => setPosts((current) => [post, ...current])}
+            />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">

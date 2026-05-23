@@ -6,7 +6,7 @@ import type { Post } from '../../types/post'
 import type { User } from '../../context/UserContext'
 
 type Props = {
-  user: User | null
+  user: User
   onPost: (post: Post) => void
 }
 
@@ -36,6 +36,10 @@ const PostComposer = ({ user, onPost }: Props) => {
   }
 
   const handlePost = () => {
+    if (!user) {
+      toast.error('Sign in to post.')
+      return
+    }
     if (!text.trim()) {
       toast.warning('Write something before posting.')
       return
@@ -48,8 +52,8 @@ const PostComposer = ({ user, onPost }: Props) => {
     onPost({
       id: faker.string.uuid(),
       author: {
-        name: user?.name || faker.person.fullName(),
-        username: user?.username || faker.internet.username().toLowerCase(),
+        name: user.name,
+        username: user.username,
         avatar,
       },
       content: text.trim(),
