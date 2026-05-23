@@ -63,7 +63,7 @@ const PostCard = ({ post, onLike, onRepost, onComment, onShare, onFollow }: Prop
           )}
         </div>
 
-        <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+        <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-wrap break-all">
           {post.content}
         </p>
 

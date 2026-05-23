@@ -1,95 +1,61 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import LeftNav from '../components/home/LeftNav'
 import RightSidebar from '../components/home/RightSidebar'
 import MobileTopNav from '../components/home/MobileTopNav'
 import PostComposer from '../components/home/PostComposer'
 import PostCard from '../components/home/PostCard'
+import CommentInput from '../components/home/CommentInput'
+import CommentSection from '../components/home/CommentSection'
+import ShareMenu from '../components/home/ShareMenu'
 import { POST_FILTER_OPTIONS, filterPosts, searchPosts } from '../utils/postFilters'
 import { useToast } from '../context/ToastContext'
 import { TOKEN_STORAGE_KEY, useUser } from '../context/UserContext'
-import type { Post, PostFilter } from '../types/post'
+import { usePostsQuery, useCommentsQuery } from '../hooks/usePostsQuery'
+import { useCreatePostMutation, useLikePostMutation, useRepostMutation, useCreateCommentMutation } from '../hooks/usePostMutations'
+import { useFollowMutation } from '../hooks/useUserMutations'
+import type { PostFilter } from '../types/post'
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
-type ApiPost = {
-  id: string
-  content: string
-  created_at: string
-  likes_count: number
-  reposts_count: number
-  comments_count: number
-  liked_by_me: boolean
-  reposted_by_me: boolean
-  is_own_post: boolean
-  is_following_author: boolean
-  user: {
-    name: string
-    username: string
-    avatar_url?: string
-  }
-}
 
 const getAvatarUrl = (avatarUrl?: string) => {
   if (!avatarUrl) return ''
   return avatarUrl.startsWith('http') ? avatarUrl : `${apiUrl}${avatarUrl}`
 }
 
-const mapApiPost = (post: ApiPost): Post => ({
-  id: post.id,
-  author: {
-    name: post.user.name,
-    username: post.user.username,
-    avatar: getAvatarUrl(post.user.avatar_url),
-  },
-  content: post.content,
-  createdAt: new Date(post.created_at),
-  likes: post.likes_count,
-  reposts: post.reposts_count,
-  comments: post.comments_count,
-  likedByMe: post.liked_by_me,
-  repostedByMe: post.reposted_by_me,
-  isOwnPost: post.is_own_post,
-  isFollowing: post.is_following_author,
-})
-
 const Home = () => {
   const { toast } = useToast()
   const { user, logout, refreshUser } = useUser()
-  const didLoadFeed = useRef(false)
-  const pendingPostActions = useRef(new Set<string>())
-  const pendingFollowActions = useRef(new Set<string>())
-  const [posts, setPosts] = useState<Post[]>([])
-  const [isLoadingFeed, setIsLoadingFeed] = useState(true)
+  const queryClient = useQueryClient()
   const [activeFilter, setActiveFilter] = useState<PostFilter>('latest50')
   const [searchQuery, setSearchQuery] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null)
+  const [shareMenuPostId, setShareMenuPostId] = useState<string | null>(null)
+
+  const { data: posts = [], isLoading: isLoadingFeed, error: postsError } = usePostsQuery()
+  const { data: expandedComments = [] } = useCommentsQuery(expandedPostId || '')
+  const createPostMutation = useCreatePostMutation()
+  const likePostMutation = useLikePostMutation()
+  const repostMutation = useRepostMutation()
+  const createCommentMutation = useCreateCommentMutation()
+  const followMutation = useFollowMutation()
 
   useEffect(() => {
-    if (didLoadFeed.current) return
-    didLoadFeed.current = true
-
-    const loadFeed = async () => {
-      const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
-
-      try {
-        const response = await fetch(`${apiUrl}/api/posts/?limit=200`, { headers })
-        const body = await response.json().catch(() => null)
-
-        if (!response.ok) {
-          throw new Error(body?.error?.message || 'Unable to load posts.')
-        }
-
-        setPosts((body?.data || []).map(mapApiPost))
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Unable to load posts.')
-      } finally {
-        setIsLoadingFeed(false)
+    const handleWindowFocus = () => {
+      queryClient.refetchQueries({ queryKey: ['posts'] })
+      if (expandedPostId) {
+        queryClient.refetchQueries({ queryKey: ['comments', expandedPostId] })
       }
     }
 
-    void loadFeed()
-  }, [toast])
+    window.addEventListener('focus', handleWindowFocus)
+    return () => window.removeEventListener('focus', handleWindowFocus)
+  }, [queryClient, expandedPostId])
+
+  if (postsError) {
+    toast.error(postsError instanceof Error ? postsError.message : 'Unable to load posts.')
+  }
 
   const visiblePosts = useMemo(() => {
     const filtered = filterPosts(posts, activeFilter)
@@ -117,124 +83,96 @@ const Home = () => {
     }
   }, [posts, user])
 
-  const updatePost = (id: string, updater: (post: Post) => Post) => {
-    setPosts((current) => current.map((p) => (p.id === id ? updater(p) : p)))
-  }
-
-  const replacePost = (post: Post) => {
-    setPosts((current) => current.map((item) => (item.id === post.id ? post : item)))
-  }
-
-  const updatePostReaction = async (postId: string, action: 'like' | 'repost') => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-    if (!token) {
-      toast.error('Sign in to continue.')
-      return
-    }
-
-    const post = posts.find((item) => item.id === postId)
+  const handleLike = (postId: string) => {
+    const post = posts.find((p) => p.id === postId)
     if (!post) return
 
-    const pendingKey = `${action}:${postId}`
-    if (pendingPostActions.current.has(pendingKey)) return
-    pendingPostActions.current.add(pendingKey)
-
-    const isActive = action === 'like' ? post.likedByMe : post.repostedByMe
-    try {
-      const response = await fetch(`${apiUrl}/api/posts/${postId}/${action}`, {
-        method: isActive ? 'DELETE' : 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
+    likePostMutation.mutate(
+      { postId, isLiked: post.likedByMe },
+      {
+        onSuccess: () => {
+          toast.success(post.likedByMe ? 'Unlike!' : 'Liked!')
         },
-      })
-      const body = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        toast.error(body?.error?.message || `Unable to ${action} this post.`)
-        return
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Unable to like this post.')
+        },
       }
-
-      if (body?.data) {
-        replacePost(mapApiPost(body.data))
-      }
-    } catch {
-      toast.error(`Unable to ${action} this post.`)
-    } finally {
-      pendingPostActions.current.delete(pendingKey)
-    }
+    )
   }
 
-  const updateAuthorFollow = async (postId: string) => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-    if (!token) {
-      toast.error('Sign in to continue.')
-      return
-    }
+  const handleRepost = (postId: string) => {
+    const post = posts.find((p) => p.id === postId)
+    if (!post) return
 
-    const post = posts.find((item) => item.id === postId)
+    repostMutation.mutate(
+      { postId, isReposted: post.repostedByMe },
+      {
+        onSuccess: () => {
+          toast.success(post.repostedByMe ? 'Unreposted!' : 'Reposted!')
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Unable to repost.')
+        },
+      }
+    )
+  }
+
+  const handleFollow = (postId: string) => {
+    const post = posts.find((p) => p.id === postId)
     if (!post || post.isOwnPost) return
 
-    const username = post.author.username
-    if (pendingFollowActions.current.has(username)) return
-    pendingFollowActions.current.add(username)
-
-    try {
-      const response = await fetch(`${apiUrl}/api/users/${username}/follow`, {
-        method: post.isFollowing ? 'DELETE' : 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
+    followMutation.mutate(
+      { username: post.author.username, isFollowing: post.isFollowing },
+      {
+        onSuccess: async () => {
+          toast.success(post.isFollowing ? 'Unfollowed!' : 'Following!')
+          await refreshUser()
         },
-      })
-      const body = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        toast.error(body?.error?.message || 'Unable to update follow.')
-        return
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Unable to update follow.')
+        },
       }
-
-      const isFollowing = Boolean(body?.data?.is_following)
-      setPosts((current) =>
-        current.map((item) =>
-          item.author.username === username ? { ...item, isFollowing } : item
-        )
-      )
-      await refreshUser()
-    } catch {
-      toast.error('Unable to update follow.')
-    } finally {
-      pendingFollowActions.current.delete(username)
-    }
+    )
   }
 
   const handleCreatePost = async (content: string, idempotencyKey: string) => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-    if (!token) throw new Error('Sign in to post.')
-
-    const response = await fetch(`${apiUrl}/api/posts/`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Idempotency-Key': idempotencyKey,
-      },
-      body: JSON.stringify({ content }),
+    return new Promise<void>((resolve, reject) => {
+      createPostMutation.mutate(
+        { content, idempotencyKey },
+        {
+          onSuccess: () => {
+            toast.success('Post published!')
+            resolve()
+          },
+          onError: (error) => {
+            toast.error(error instanceof Error ? error.message : 'Unable to publish your post.')
+            reject(error)
+          },
+        }
+      )
     })
-    const body = await response.json().catch(() => null)
+  }
 
-    if (!response.ok) {
-      throw new Error(body?.error?.message || 'Unable to publish your post.')
+  const expandPost = (postId: string) => {
+    if (expandedPostId === postId) {
+      setExpandedPostId(null)
+    } else {
+      setExpandedPostId(postId)
     }
+  }
 
-    if (!body?.data) {
-      throw new Error('Post response was missing data.')
-    }
-
-    const post = mapApiPost(body.data)
-    setPosts((current) => {
-      const withoutDuplicate = current.filter((item) => item.id !== post.id)
-      return [post, ...withoutDuplicate]
-    })
-    return post
+  const handleCreateComment = (postId: string, content: string) => {
+    createCommentMutation.mutate(
+      { postId, content },
+      {
+        onSuccess: () => {
+          toast.success('Comment posted!')
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Unable to post comment.')
+        },
+      }
+    )
   }
 
   const handleSearch = () => {
@@ -295,27 +233,48 @@ const Home = () => {
             </p>
           ) : (
             visiblePosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={(id) => void updatePostReaction(id, 'like')}
-                onRepost={(id) => void updatePostReaction(id, 'repost')}
-                onComment={(id) => {
-                  updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }))
-                  toast.info('Comments coming soon.')
-                }}
-                onShare={(id) => {
-                  navigator.clipboard?.writeText(
-                    `${window.location.origin}/home#${id}`
-                  )
-                  toast.success('Post link copied.')
-                }}
-                onFollow={(id) => void updateAuthorFollow(id)}
-              />
+              <div key={post.id} className="border-b border-cursor-border">
+                <PostCard
+                  post={post}
+                  onLike={handleLike}
+                  onRepost={handleRepost}
+                  onComment={expandPost}
+                  onShare={(id) => setShareMenuPostId(id)}
+                  onFollow={handleFollow}
+                />
+                {expandedPostId === post.id && (
+                  <>
+                    {user && (
+                      <CommentInput
+                        onSubmit={(content) => handleCreateComment(post.id, content)}
+                        isLoading={createCommentMutation.isPending}
+                        userAvatar={getAvatarUrl(user.avatar_url)}
+                      />
+                    )}
+                    <CommentSection
+                      comments={expandedComments || []}
+                      isLoadingComments={false}
+                      showInput={expandedPostId === post.id}
+                    />
+                  </>
+                )}
+              </div>
             ))
           )}
         </div>
       </main>
+
+      {shareMenuPostId && (() => {
+        const post = posts.find((p) => p.id === shareMenuPostId)
+        return post ? (
+          <ShareMenu
+            postUrl={`${window.location.origin}/home#${shareMenuPostId}`}
+            postContent={post.content}
+            isOpen={true}
+            onClose={() => setShareMenuPostId(null)}
+          />
+        ) : null
+      })()}
     </div>
   )
 }
